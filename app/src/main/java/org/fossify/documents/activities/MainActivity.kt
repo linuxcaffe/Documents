@@ -183,27 +183,11 @@ class MainActivity : BaseComposeActivity() {
     private fun launchDocument(uri: Uri, kind: DocumentKind) {
         hideKeyboard()
         try {
-            when (kind) {
-                DocumentKind.PDF -> {
-                    startActivity(
-                        Intent(this, PDFViewerActivity::class.java).apply {
-                            data = uri
-                        }
-                    )
-                }
-
-                DocumentKind.TEXT,
-                DocumentKind.MARKDOWN -> {
-                    startActivity(TextDocumentActivity.newIntent(this, uri, kind))
-                }
-
-                DocumentKind.DOCX,
-                DocumentKind.CSV,
-                DocumentKind.HTML -> {
-                    startActivity(StructuredDocumentActivity.newIntent(this, uri, kind))
-                }
-
-                DocumentKind.OTHER -> toast(R.string.unsupported_document_type)
+            val intent = documentViewerIntent(uri, kind)
+            if (intent == null) {
+                toast(R.string.unsupported_document_type)
+            } else {
+                startActivity(intent)
             }
         } catch (_: SecurityException) {
             toast(R.string.document_no_longer_available)

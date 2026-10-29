@@ -69,6 +69,7 @@
     <string name="new_text_file">New text file</string>
     <string name="recent">Recent</string>
     <string name="read_only">Read-only</string>
+    <string name="relative_link_unavailable">Could not open the linked file. Links to other files work in documents opened from a folder.</string>
     <string name="remember_pdf_page">Remember PDF page</string>
     <string name="remove_from_documents">Remove from Documents</string>
     <string name="retry">Retry</string>
