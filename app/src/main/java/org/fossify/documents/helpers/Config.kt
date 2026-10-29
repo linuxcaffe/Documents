@@ -18,6 +18,7 @@ class Config(context: Context) : BaseConfig(context) {
         private const val PDF_PAGE_INDICATOR = "pdf_page_indicator"
         private const val REMEMBER_PDF_PAGE = "remember_pdf_page"
         private const val SHOW_FILE_LOCATIONS = "show_file_locations"
+        private const val SHOW_HIDDEN_FILES = "show_hidden_files"
     }
 
     var documentViewMode: DocumentViewMode
@@ -81,4 +82,12 @@ class Config(context: Context) : BaseConfig(context) {
         }
 
     val showFileLocationsFlow = ::showFileLocations.asFlowNonNull()
+
+    var showHiddenFiles: Boolean
+        get() = prefs.getBoolean(SHOW_HIDDEN_FILES, false)
+        set(value) = prefs.edit {
+            putBoolean(SHOW_HIDDEN_FILES, value)
+        }
+
+    val showHiddenFilesFlow = ::showHiddenFiles.asFlowNonNull()
 }
