@@ -37,6 +37,7 @@ commonmark-autolink = { module = "org.commonmark:commonmark-ext-autolink", versi
 commonmark-strikethrough = { module = "org.commonmark:commonmark-ext-gfm-strikethrough", version.ref = "commonmark" }
 commonmark-tables = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
 commonmark-task-lists = { module = "org.commonmark:commonmark-ext-task-list-items", version.ref = "commonmark" }
+commonmark-yaml-front-matter = { module = "org.commonmark:commonmark-ext-yaml-front-matter", version.ref = "commonmark" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 #Android X lifecycle
@@ -81,6 +82,7 @@ markdown = [
     "commonmark-strikethrough",
     "commonmark-tables",
     "commonmark-task-lists",
+    "commonmark-yaml-front-matter",
 ]
 [plugins]
 android = { id = "com.android.application", version.ref = "gradlePlugins-agp" }

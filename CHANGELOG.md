@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added a share button to document readers ([#98])
 - New files are created in the folder being browsed, with an option to choose the location instead
+- Markdown front matter is shown as a metadata card instead of a stray heading
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
