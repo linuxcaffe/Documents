@@ -2,7 +2,9 @@ package org.fossify.documents.data
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TextDocumentCodecTest {
@@ -66,5 +68,18 @@ class TextDocumentCodecTest {
         val bytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00, 0x00, 0x48, 0x00, 0x00, 0x00)
 
         assertNull(TextDocumentCodec.decode(bytes).encoding)
+    }
+
+    @Test
+    fun `flags binary content`() {
+        val decoded = TextDocumentCodec.decode(byteArrayOf(0x7F, 0x45, 0x4C, 0x46, 0x00, 0x01, 0xFF.toByte()))
+
+        assertTrue(decoded.isBinary)
+    }
+
+    @Test
+    fun `does not flag text as binary`() {
+        assertFalse(TextDocumentCodec.decode("set editor=vim\n".toByteArray()).isBinary)
+        assertFalse(TextDocumentCodec.decode(byteArrayOf(0xC3.toByte(), 0x28)).isBinary)
     }
 }
