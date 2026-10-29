@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New files are created in the folder being browsed, with an option to choose the location instead
 - Markdown front matter is shown as a metadata card instead of a stray heading
 - Hidden files (names starting with a dot) are no longer listed in folders, with an option to show them
+- Links between files in Markdown (like `[notes](other.md)`) open the linked file when browsing a folder
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
