@@ -26,12 +26,14 @@ internal fun SettingsScreen(
     horizontalPdfPaging: Boolean,
     showPdfPageIndicator: Boolean,
     showFileLocations: Boolean,
+    showHiddenFiles: Boolean,
     onUseEnglishPress: (Boolean) -> Unit,
     onSetupLanguagePress: () -> Unit,
     onRememberPdfPageChange: (Boolean) -> Unit,
     onHorizontalPdfPagingChange: (Boolean) -> Unit,
     onPdfPageIndicatorChange: (Boolean) -> Unit,
     onShowFileLocationsChange: (Boolean) -> Unit,
+    onShowHiddenFilesChange: (Boolean) -> Unit,
     customizeColors: () -> Unit,
     goBack: () -> Unit,
 ) {
@@ -79,6 +81,12 @@ internal fun SettingsScreen(
                 onChange = onShowFileLocationsChange,
                 showCheckmark = isShowingCheckmarksOnSwitches,
             )
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.show_hidden_files),
+                initialValue = showHiddenFiles,
+                onChange = onShowHiddenFilesChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
         }
 
         SettingsHorizontalDivider()
@@ -120,12 +128,14 @@ private fun SettingsScreenPreview() {
             horizontalPdfPaging = false,
             showPdfPageIndicator = true,
             showFileLocations = false,
+            showHiddenFiles = false,
             onUseEnglishPress = {},
             onSetupLanguagePress = {},
             onRememberPdfPageChange = {},
             onHorizontalPdfPagingChange = {},
             onPdfPageIndicatorChange = {},
             onShowFileLocationsChange = {},
+            onShowHiddenFilesChange = {},
             customizeColors = {},
             goBack = {},
         )

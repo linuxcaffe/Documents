@@ -82,6 +82,7 @@
         <item quantity="other">%1$d selected</item>
     </plurals>
     <string name="show_file_locations">Show file locations</string>
+    <string name="show_hidden_files">Show hidden files</string>
     <string name="sort_name_ascending">Name (A-Z)</string>
     <string name="sort_name_descending">Name (Z-A)</string>
     <string name="sort_recent">Recent</string>

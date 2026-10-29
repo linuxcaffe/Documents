@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a share button to document readers ([#98])
+- Hidden files (names starting with a dot) are no longer listed in folders, with an option to show them
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
