@@ -9,6 +9,7 @@ class Config(context: Context) : BaseConfig(context) {
     companion object {
         fun newInstance(context: Context) = Config(context)
 
+        private const val CREATE_IN_CURRENT_FOLDER = "create_in_current_folder"
         private const val DOCUMENT_VIEW_MODE = "document_view_mode"
         private const val DOCUMENTS = "documents"
         private const val DOCUMENT_FOLDERS = "document_folders"
@@ -81,4 +82,12 @@ class Config(context: Context) : BaseConfig(context) {
         }
 
     val showFileLocationsFlow = ::showFileLocations.asFlowNonNull()
+
+    var createInCurrentFolder: Boolean
+        get() = prefs.getBoolean(CREATE_IN_CURRENT_FOLDER, true)
+        set(value) = prefs.edit {
+            putBoolean(CREATE_IN_CURRENT_FOLDER, value)
+        }
+
+    val createInCurrentFolderFlow = ::createInCurrentFolder.asFlowNonNull()
 }
