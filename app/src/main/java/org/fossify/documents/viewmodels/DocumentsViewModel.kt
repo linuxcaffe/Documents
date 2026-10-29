@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,12 +27,14 @@ import kotlinx.coroutines.withContext
 import org.fossify.documents.R
 import org.fossify.documents.data.DocumentFolderContent
 import org.fossify.documents.data.DocumentsRepository
+import org.fossify.documents.data.newDocumentFileName
 import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
 import org.fossify.documents.models.DocumentSort
 import org.fossify.documents.models.DocumentViewMode
+import org.fossify.documents.models.NewDocumentType
 
 private const val UI_STATE_STOP_TIMEOUT_MS = 5_000L
 
@@ -52,6 +55,8 @@ class DocumentsViewModel(
     private var folderOriginSection = DocumentsHomeSection.HOME
     private val selectedDocuments = MutableStateFlow<Map<String, SelectedDocument>>(emptyMap())
     private val selectedFolders = MutableStateFlow<Map<String, DocumentFolder>>(emptyMap())
+    private val pendingNewDocumentState = MutableStateFlow<NewDocumentType?>(null)
+    val pendingNewDocument: StateFlow<NewDocumentType?> = pendingNewDocumentState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -354,6 +359,38 @@ class DocumentsViewModel(
 
     fun refreshVisibleFolder() {
         folderRefresh.value += 1L
+    }
+
+    /** New files go straight into the folder being browsed, skipping the system file picker. */
+    fun canCreateInActiveFolder(): Boolean {
+        return config.createInCurrentFolder &&
+                homeSection.value == DocumentsHomeSection.FOLDER &&
+                folderPath.value.isNotEmpty()
+    }
+
+    fun requestNewDocument(type: NewDocumentType) {
+        pendingNewDocumentState.value = type
+    }
+
+    fun dismissNewDocument() {
+        pendingNewDocumentState.value = null
+    }
+
+    fun createDocumentInActiveFolder(name: String, onCreated: (Uri?, NewDocumentType) -> Unit) {
+        val type = pendingNewDocumentState.value ?: return
+        val folderUri = folderPath.value.lastOrNull()?.uri ?: return
+        pendingNewDocumentState.value = null
+        viewModelScope.launch {
+            val uri = withContext(Dispatchers.IO) {
+                repository.createDocumentInFolder(
+                    folderUri = folderUri,
+                    displayName = newDocumentFileName(name, type.extension),
+                    mimeType = type.mimeType,
+                )
+            }
+            refreshVisibleFolder()
+            onCreated(uri, type)
+        }
     }
 
     fun toggleDocumentSelection(selectionKey: String, document: DocumentEntry) {

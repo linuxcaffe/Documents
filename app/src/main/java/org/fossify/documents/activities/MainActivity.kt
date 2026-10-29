@@ -30,12 +30,15 @@ import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.extensions.startAboutActivity
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentKind
+import org.fossify.documents.models.NewDocumentType
+import org.fossify.documents.ui.screens.NewDocumentDialog
 import org.fossify.documents.ui.screens.DocumentsMainActions
 import org.fossify.documents.ui.screens.MainScreen
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
 import org.fossify.documents.viewmodels.DocumentsHomeSection
 import org.fossify.documents.viewmodels.DocumentsViewModel
 
+@Suppress("TooManyFunctions")
 class MainActivity : BaseComposeActivity() {
     private var hasResumed = false
 
@@ -92,10 +95,23 @@ class MainActivity : BaseComposeActivity() {
         setContent {
             DocumentsAppThemeSurface {
                 val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+                val pendingNewDocument = viewModel.pendingNewDocument.collectAsStateWithLifecycle().value
                 MainScreen(
                     uiState = uiState,
                     actions = documentsMainActions(),
                 )
+                if (pendingNewDocument != null) {
+                    NewDocumentDialog(
+                        type = pendingNewDocument,
+                        folderName = uiState.activeFolder?.name.orEmpty(),
+                        onCreate = ::createDocumentInActiveFolder,
+                        onChooseLocation = {
+                            viewModel.dismissNewDocument()
+                            pickNewDocumentLocation(pendingNewDocument)
+                        },
+                        onDismiss = viewModel::dismissNewDocument,
+                    )
+                }
             }
         }
     }
@@ -112,22 +128,8 @@ class MainActivity : BaseComposeActivity() {
     private fun documentsMainActions() = DocumentsMainActions(
         openDocument = { openDocumentLauncher.launch(DocumentsViewModel.openDocumentIntent) },
         openFolder = { openFolderLauncher.launch(DocumentsViewModel.openFolderIntent) },
-        newTextFile = {
-            createTextDocumentLauncher.launch(
-                DocumentsViewModel.createDocumentIntent(
-                    mimeType = "text/plain",
-                    title = getString(R.string.untitled_text_file),
-                )
-            )
-        },
-        newMarkdownFile = {
-            createMarkdownDocumentLauncher.launch(
-                DocumentsViewModel.createDocumentIntent(
-                    mimeType = "text/markdown",
-                    title = getString(R.string.untitled_markdown_file),
-                )
-            )
-        },
+        newTextFile = { newDocument(NewDocumentType.TEXT) },
+        newMarkdownFile = { newDocument(NewDocumentType.MARKDOWN) },
         openSettings = ::launchSettings,
         openAbout = ::launchAbout,
         clearRecentDocuments = viewModel::clearRecentDocuments,
@@ -161,6 +163,34 @@ class MainActivity : BaseComposeActivity() {
         onRemoveSelection = viewModel::removeSelectedItems,
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
+
+    private fun newDocument(type: NewDocumentType) {
+        if (viewModel.canCreateInActiveFolder()) {
+            viewModel.requestNewDocument(type)
+        } else {
+            pickNewDocumentLocation(type)
+        }
+    }
+
+    private fun pickNewDocumentLocation(type: NewDocumentType) {
+        val (launcher, title) = when (type) {
+            NewDocumentType.TEXT -> createTextDocumentLauncher to R.string.untitled_text_file
+            NewDocumentType.MARKDOWN -> createMarkdownDocumentLauncher to R.string.untitled_markdown_file
+        }
+        launcher.launch(
+            DocumentsViewModel.createDocumentIntent(mimeType = type.mimeType, title = getString(title))
+        )
+    }
+
+    private fun createDocumentInActiveFolder(name: String) {
+        viewModel.createDocumentInActiveFolder(name) { uri, type ->
+            if (uri != null) {
+                launchDocument(uri, type.kind)
+            } else {
+                toast(R.string.new_file_failed)
+            }
+        }
+    }
 
     private fun handleCreatedDocument(resultCode: Int, data: Intent?, kind: DocumentKind) {
         val uri = data?.data

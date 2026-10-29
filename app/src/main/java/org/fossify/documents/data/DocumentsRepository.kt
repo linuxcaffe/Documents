@@ -173,6 +173,12 @@ class DocumentsRepository(
         emit(scanner.readFolderContent(uri.toUri(), previous))
     }.flowOn(Dispatchers.IO)
 
+    fun createDocumentInFolder(folderUri: String, displayName: String, mimeType: String): Uri? {
+        val uri = appContext.createDocumentInFolder(folderUri.toUri(), displayName, mimeType) ?: return null
+        rememberDocument(uri)
+        return uri
+    }
+
 }
 
 internal data class DocumentFolderContent(

@@ -213,6 +213,14 @@ private fun Uri.getDocumentIdForChildren(): String? {
     }.getOrNull()
 }
 
+internal fun Context.createDocumentInFolder(folderUri: Uri, displayName: String, mimeType: String): Uri? {
+    val parentDocumentId = folderUri.getDocumentIdForChildren() ?: return null
+    val parentUri = DocumentsContract.buildDocumentUriUsingTree(folderUri, parentDocumentId)
+    return runCatching {
+        DocumentsContract.createDocument(contentResolver, parentUri, mimeType, displayName)
+    }.getOrNull()
+}
+
 private fun Context.getFolderItemCount(folderUri: String): Int {
     val treeUri = folderUri.toUri()
     val parentDocumentId = treeUri.getDocumentIdForChildren() ?: return 0

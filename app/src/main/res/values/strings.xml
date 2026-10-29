@@ -67,6 +67,12 @@
     <string name="preview">Preview</string>
     <string name="new_markdown_file">New markdown file</string>
     <string name="new_text_file">New text file</string>
+    <string name="new_file_name">Name</string>
+    <string name="new_file_name_hint">Created in %1$s. Leave blank for a timestamp name.</string>
+    <string name="new_file_failed">Could not create the file in this folder.</string>
+    <string name="choose_location">Choose location…</string>
+    <string name="create_document">Create</string>
+    <string name="create_in_current_folder">Create new files in the current folder</string>
     <string name="recent">Recent</string>
     <string name="read_only">Read-only</string>
     <string name="remember_pdf_page">Remember PDF page</string>
