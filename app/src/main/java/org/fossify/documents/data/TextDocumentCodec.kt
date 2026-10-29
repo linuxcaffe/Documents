@@ -22,13 +22,19 @@ internal object TextDocumentCodec {
             bytes.decodeStrictly(encoding.charset, encoding.byteOrderMark.size)
         }
 
-        return if (decoded != null) {
-            DecodedTextDocument(
+        return when {
+            decoded != null -> DecodedTextDocument(
                 text = decoded,
                 encoding = encoding,
             )
-        } else {
-            DecodedTextDocument(
+
+            bytes.looksBinary() -> DecodedTextDocument(
+                text = "",
+                encoding = null,
+                isBinary = true,
+            )
+
+            else -> DecodedTextDocument(
                 text = bytes.toString(Charsets.UTF_8),
                 encoding = null,
             )
@@ -48,7 +54,15 @@ private val unsupportedByteOrderMarks = listOf(
 internal data class DecodedTextDocument(
     val text: String,
     val encoding: TextDocumentEncoding?,
+    val isBinary: Boolean = false,
 )
+
+private const val BINARY_SNIFF_LENGTH = 8 * 1024
+
+/** NUL bytes in undecodable content mean a binary file rather than text in an odd encoding. */
+private fun ByteArray.looksBinary(): Boolean {
+    return (0 until minOf(size, BINARY_SNIFF_LENGTH)).any { this[it] == 0.toByte() }
+}
 
 internal enum class TextDocumentEncoding(
     val charset: Charset,

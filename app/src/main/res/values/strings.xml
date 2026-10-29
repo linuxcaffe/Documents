@@ -60,6 +60,7 @@
     <string name="open_folder_empty_hint">Open a folder to browse supported documents.</string>
     <string name="open_document_empty_hint">Open a document or folder to get started.</string>
     <string name="next_page">Next page</string>
+    <string name="not_a_text_file">This file doesn't look like text, so it can't be opened here.</string>
     <string name="page_count_value">%1$d / %2$d</string>
     <string name="pdf_print_whole_document_only">Only the entire PDF can be printed.</string>
     <string name="previous_page">Previous page</string>

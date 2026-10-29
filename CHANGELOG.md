@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a share button to document readers ([#98])
+- Text files without a known extension (like `.bashrc` or `vimrc`) and more code and config formats can be opened
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
