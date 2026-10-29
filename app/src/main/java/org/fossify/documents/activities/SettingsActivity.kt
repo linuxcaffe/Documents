@@ -44,6 +44,8 @@ class SettingsActivity : BaseComposeActivity() {
                     .collectAsStateWithLifecycle(preferences.showFileLocations)
                 val createInCurrentFolder by preferences.createInCurrentFolderFlow
                     .collectAsStateWithLifecycle(preferences.createInCurrentFolder)
+                val showHiddenFiles by preferences.showHiddenFilesFlow
+                    .collectAsStateWithLifecycle(preferences.showHiddenFiles)
                 val displayLanguage = remember { Locale.getDefault().displayLanguage }
                 val isUseEnglishEnabled by remember(wasUseEnglishToggledFlow) {
                     derivedStateOf {
@@ -61,6 +63,7 @@ class SettingsActivity : BaseComposeActivity() {
                     showPdfPageIndicator = showPdfPageIndicator,
                     showFileLocations = showFileLocations,
                     createInCurrentFolder = createInCurrentFolder,
+                    showHiddenFiles = showHiddenFiles,
                     onUseEnglishPress = { isChecked ->
                         preferences.useEnglish = isChecked
                         exitProcess(0)
@@ -80,6 +83,9 @@ class SettingsActivity : BaseComposeActivity() {
                     },
                     onCreateInCurrentFolderChange = { checked ->
                         preferences.createInCurrentFolder = checked
+                    },
+                    onShowHiddenFilesChange = { checked ->
+                        preferences.showHiddenFiles = checked
                     },
                     customizeColors = ::startCustomizationActivity,
                     goBack = ::finish

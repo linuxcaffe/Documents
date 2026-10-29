@@ -8,6 +8,7 @@ import android.provider.OpenableColumns
 import androidx.core.net.toUri
 import org.fossify.commons.extensions.getFilenameFromUri
 import org.fossify.commons.extensions.getMimeTypeFromUri
+import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFolder
 import org.fossify.documents.models.DocumentKind
@@ -93,6 +94,7 @@ internal class DocumentProviderScanner(
             DocumentsContract.Document.COLUMN_LAST_MODIFIED,
         )
 
+        val showHiddenFiles = appContext.config.showHiddenFiles
         return appContext.contentResolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
             val folders = mutableListOf<DocumentFolder>()
             val documents = mutableListOf<DocumentEntry>()
@@ -100,13 +102,15 @@ internal class DocumentProviderScanner(
                 val mimeType = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
                 val documentId = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
                     ?: continue
-                if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                    folders += DocumentFolder(
+                val name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
+                when {
+                    !showHiddenFiles && isHiddenFileName(name) -> Unit
+                    mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> folders += DocumentFolder(
                         uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId).toString(),
-                        name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty(),
+                        name = name,
                     )
-                } else {
-                    cursor.toFolderDocument(treeUri, folderLocation)?.let(documents::add)
+
+                    else -> cursor.toFolderDocument(treeUri, folderLocation)?.let(documents::add)
                 }
             }
 
@@ -221,7 +225,11 @@ internal fun Context.createDocumentInFolder(folderUri: Uri, displayName: String,
     }.getOrNull()
 }
 
+/** Dotfiles (`.git`, `.index`, …) are hidden, as on most desktop file managers. */
+internal fun isHiddenFileName(name: String): Boolean = name.startsWith('.')
+
 private fun Context.getFolderItemCount(folderUri: String): Int {
+    val showHiddenFiles = config.showHiddenFiles
     val treeUri = folderUri.toUri()
     val parentDocumentId = treeUri.getDocumentIdForChildren() ?: return 0
     val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocumentId)
@@ -237,7 +245,8 @@ private fun Context.getFolderItemCount(folderUri: String): Int {
                 val name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
                 val mimeType = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
                 val isFolder = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
-                if (isFolder || DocumentKind.fromName(name, mimeType) != DocumentKind.OTHER) {
+                val isVisible = showHiddenFiles || !isHiddenFileName(name)
+                if (isVisible && (isFolder || DocumentKind.fromName(name, mimeType) != DocumentKind.OTHER)) {
                     itemCount++
                 }
             }
