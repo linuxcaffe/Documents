@@ -34,13 +34,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
@@ -48,7 +45,6 @@ import org.commonmark.Extension
 import org.commonmark.ext.autolink.AutolinkExtension
 import org.commonmark.ext.front.matter.YamlFrontMatterBlock
 import org.commonmark.ext.front.matter.YamlFrontMatterExtension
-import org.commonmark.ext.front.matter.YamlFrontMatterNode
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension
 import org.commonmark.ext.gfm.tables.TableBlock
 import org.commonmark.ext.gfm.tables.TableCell
@@ -127,7 +123,11 @@ internal fun MarkdownPreview(
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
         document.children().forEach { node ->
-            MarkdownBlock(node, textZoom)
+            if (node is YamlFrontMatterBlock) {
+                MarkdownFrontMatter(node, textZoom)
+            } else {
+                MarkdownBlock(node, textZoom)
+            }
         }
     }
 }
@@ -146,7 +146,6 @@ private fun MarkdownBlock(
         is FencedCodeBlock -> MarkdownCode(node.literal, textZoom)
         is IndentedCodeBlock -> MarkdownCode(node.literal, textZoom)
         is TableBlock -> MarkdownTable(node, textZoom)
-        is YamlFrontMatterBlock -> MarkdownFrontMatter(node, textZoom)
         is ThematicBreak -> HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         is HtmlBlock -> MarkdownCode(node.literal, textZoom)
         is LinkReferenceDefinition -> Unit
@@ -309,45 +308,6 @@ private fun MarkdownCode(
 }
 
 @Composable
-private fun MarkdownFrontMatter(
-    node: YamlFrontMatterBlock,
-    textZoom: Float,
-) {
-    val entries = node.frontMatterEntries()
-    if (entries.isEmpty()) return
-
-    Surface(
-        color = markdownNeutralSurfaceColor(CONTAINER_TINT_ALPHA),
-        contentColor = SimpleTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            entries.forEach { (key, value) ->
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                            append(key)
-                        }
-                        append("  ")
-                        append(value)
-                    },
-                    style = SimpleTheme.typography.bodySmall.documentTextZoomed(textZoom),
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-        }
-    }
-}
-
-internal fun YamlFrontMatterBlock.frontMatterEntries(): List<Pair<String, String>> {
-    return children()
-        .filterIsInstance<YamlFrontMatterNode>()
-        .map { it.key to it.values.joinToString(", ") }
-}
-
-@Composable
 private fun MarkdownTable(
     node: TableBlock,
     textZoom: Float,
@@ -407,14 +367,14 @@ private fun MarkdownTable(
     }
 }
 
-private fun TextStyle.documentTextZoomed(zoom: Float): TextStyle {
+internal fun TextStyle.documentTextZoomed(zoom: Float): TextStyle {
     return copy(
         fontSize = if (fontSize.isSpecified) fontSize * zoom else fontSize,
         lineHeight = if (lineHeight.isSpecified) lineHeight * zoom else lineHeight,
     )
 }
 
-private const val CONTAINER_TINT_ALPHA = 0.06f
+internal const val CONTAINER_TINT_ALPHA = 0.06f
 private const val TABLE_HEADER_TINT_ALPHA = 0.1f
 private data class PendingScrollPosition(
     val fraction: Float,
