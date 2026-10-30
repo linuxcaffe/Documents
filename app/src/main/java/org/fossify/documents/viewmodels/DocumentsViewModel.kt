@@ -34,6 +34,7 @@ import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
 import org.fossify.documents.models.DocumentSort
 import org.fossify.documents.models.DocumentViewMode
+import org.fossify.documents.models.MSyncStatus
 import org.fossify.documents.models.NewDocumentType
 
 private const val UI_STATE_STOP_TIMEOUT_MS = 5_000L
@@ -232,6 +233,7 @@ class DocumentsViewModel(
             availableFilters = availableFilters,
             isFolderLoading = folderState.isLoading && folderState.uri == requestedFolderUri,
             folderError = folderState.error.takeIf { folderState.uri == requestedFolderUri },
+            folderSyncStatus = activeFolderContent?.syncStatus,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -596,6 +598,7 @@ data class DocumentsUiState(
     val availableFilters: Set<DocumentFilter> = emptySet(),
     val isFolderLoading: Boolean = false,
     val folderError: String? = null,
+    val folderSyncStatus: MSyncStatus? = null,
 ) {
     val selectionCount: Int
         get() = selectedDocumentKeys.size + selectedFolders.size

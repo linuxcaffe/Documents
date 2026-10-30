@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hidden files (names starting with a dot) are no longer listed in folders, with an option to show them
 - Links between files in Markdown (like `[notes](other.md)`) open the linked file when browsing a folder
 - Text files without a known extension (like `.bashrc` or `vimrc`) and more code and config formats can be opened
+- Sync status strip for folders synced by m-sync (`.m-sync.json`), and conflict copies marked in listings
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app

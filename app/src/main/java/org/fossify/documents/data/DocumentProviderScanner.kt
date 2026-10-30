@@ -12,6 +12,7 @@ import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFolder
 import org.fossify.documents.models.DocumentKind
+import org.fossify.documents.models.MSyncStatus
 import java.io.IOException
 
 internal class DocumentProviderScanner(
@@ -77,6 +78,7 @@ internal class DocumentProviderScanner(
             ),
             childFolders = children.folders,
             documents = children.documents,
+            syncStatus = children.syncStatusId?.let { appContext.readMSyncStatus(uri, it) },
         )
     }
 
@@ -98,12 +100,15 @@ internal class DocumentProviderScanner(
         return appContext.contentResolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
             val folders = mutableListOf<DocumentFolder>()
             val documents = mutableListOf<DocumentEntry>()
+            var syncStatusId: String? = null
             while (cursor.moveToNext()) {
                 val mimeType = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
                 val documentId = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
                     ?: continue
                 val name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
                 when {
+                    name == MSyncStatus.FILE_NAME && mimeType != DocumentsContract.Document.MIME_TYPE_DIR ->
+                        syncStatusId = documentId
                     !showHiddenFiles && isHiddenFileName(name) -> Unit
                     mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> folders += DocumentFolder(
                         uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId).toString(),
@@ -117,6 +122,7 @@ internal class DocumentProviderScanner(
             FolderChildren(
                 folders = folders.sortedBy { it.name.lowercase() },
                 documents = documents.sortedBy { it.name.lowercase() },
+                syncStatusId = syncStatusId,
             )
         } ?: throw IOException("Could not access this folder.")
     }
@@ -205,6 +211,7 @@ internal class DocumentProviderScanner(
     private data class FolderChildren(
         val folders: List<DocumentFolder> = emptyList(),
         val documents: List<DocumentEntry> = emptyList(),
+        val syncStatusId: String? = null,
     )
 
 }
