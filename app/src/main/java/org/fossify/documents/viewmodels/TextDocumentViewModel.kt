@@ -74,7 +74,7 @@ class TextDocumentViewModel(
                     document to repository.isDocumentWritable(uri)
                 }
                 if (decoded.isBinary) {
-                    _uiState.update { it.copy(isLoading = false, error = app.getString(R.string.not_a_text_file)) }
+                    _uiState.update { it.copy(isLoading = false, error = app.getString(R.string.file_not_text)) }
                 } else {
                     showDocument(decoded, writable)
                 }
