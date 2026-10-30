@@ -124,11 +124,11 @@ private fun DocumentRowText(
             style = SimpleTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
         )
         Text(
-            text = document.metaLine(showOpenedFallback = true),
+            text = document.syncAwareMetaLine(),
             modifier = Modifier.padding(top = 3.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = SimpleTheme.colorScheme.onSurface.copy(alpha = 0.66f),
+            color = document.syncAwareMetaColor(alpha = 0.66f),
             style = SimpleTheme.typography.bodyMedium,
         )
         if (showLocation && document.location.isNotBlank()) {
