@@ -191,17 +191,7 @@ private fun LazyListScope.focusedDocuments(
         }
 
         else -> {
-            uiState.folderSyncStatus?.let { status ->
-                item(key = "m_sync_status") {
-                    val copy = status.conflicts.firstOrNull()?.let { name ->
-                        uiState.visibleDocuments.firstOrNull { it.name == name.substringAfterLast('/') }
-                    }
-                    MSyncStatusStrip(
-                        status = status,
-                        onClick = copy?.let { { actions.onDocumentClick(it) } },
-                    )
-                }
-            }
+            syncStatusStrip(uiState = uiState, actions = actions)
             if (showChildFolders) {
                 folderChildren(uiState = uiState, actions = actions)
             }
@@ -229,6 +219,22 @@ private fun LazyListScope.focusedDocuments(
                 )
             }
         }
+    }
+}
+
+private fun LazyListScope.syncStatusStrip(
+    uiState: DocumentsUiState,
+    actions: DocumentsMainActions,
+) {
+    val status = uiState.folderSyncStatus ?: return
+    item(key = "m_sync_status") {
+        val copy = status.conflicts.firstOrNull()?.let { name ->
+            uiState.visibleDocuments.firstOrNull { it.name == name.substringAfterLast('/') }
+        }
+        MSyncStatusStrip(
+            status = status,
+            onClick = copy?.let { { actions.onDocumentClick(it) } },
+        )
     }
 }
 

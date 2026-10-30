@@ -103,18 +103,16 @@ internal class DocumentProviderScanner(
                 val mimeType = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty()
                 val documentId = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
                     ?: continue
-                val name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-                if (name == MSyncStatus.FILE_NAME && mimeType != DocumentsContract.Document.MIME_TYPE_DIR) {
-                    syncStatusId = documentId
-                    continue
-                }
-                if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                    folders += DocumentFolder(
+                val name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
+                when {
+                    name == MSyncStatus.FILE_NAME && mimeType != DocumentsContract.Document.MIME_TYPE_DIR ->
+                        syncStatusId = documentId
+                    mimeType == DocumentsContract.Document.MIME_TYPE_DIR -> folders += DocumentFolder(
                         uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId).toString(),
-                        name = cursor.getStringOrNull(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty(),
+                        name = name,
                     )
-                } else {
-                    cursor.toFolderDocument(treeUri, folderLocation)?.let(documents::add)
+
+                    else -> cursor.toFolderDocument(treeUri, folderLocation)?.let(documents::add)
                 }
             }
 
