@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a share button to document readers ([#98])
+- Sync status strip for folders synced by m-sync (`.m-sync.json`), and conflict copies marked in listings
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app

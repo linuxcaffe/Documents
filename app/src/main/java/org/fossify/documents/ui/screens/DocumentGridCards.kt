@@ -210,10 +210,10 @@ private fun DocumentGridCardText(
             style = SimpleTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
         )
         Text(
-            text = document.metaLine(showOpenedFallback = true),
+            text = document.syncAwareMetaLine(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = SimpleTheme.colorScheme.onSurface.copy(alpha = 0.66f),
+            color = document.syncAwareMetaColor(alpha = 0.66f),
             style = SimpleTheme.typography.bodyMedium,
         )
         if (showLocation) {

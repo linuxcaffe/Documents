@@ -112,4 +112,19 @@
     <string name="pdf_search_failed">Could not complete the search.</string>
     <string name="pdf_reading">PDF reading</string>
     <string name="pdf_horizontal_paging">Scroll PDFs horizontally</string>
+    <string name="m_sync_synced">Synced</string>
+    <string name="m_sync_synced_at">Synced %1$s</string>
+    <string name="m_sync_offline">Offline</string>
+    <plurals name="m_sync_offline_waiting">
+        <item quantity="one">Offline: %1$d change waiting</item>
+        <item quantity="other">Offline: %1$d changes waiting</item>
+    </plurals>
+    <string name="m_sync_last_synced">last synced %1$s</string>
+    <string name="m_sync_conflict_one">Conflict: %1$s changed on two devices</string>
+    <plurals name="m_sync_conflicts">
+        <item quantity="one">%1$d conflict copy to look at</item>
+        <item quantity="other">%1$d conflict copies to look at</item>
+    </plurals>
+    <string name="m_sync_problem">Sync problem: %1$s</string>
+    <string name="m_sync_conflict_copy_meta">Conflict copy · %1$s</string>
 </resources>

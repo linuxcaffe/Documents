@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.MSyncStatus
 
 @Suppress("TooManyFunctions")
 class DocumentsRepository(
@@ -179,6 +180,7 @@ internal data class DocumentFolderContent(
     val folder: DocumentFolder,
     val childFolders: List<DocumentFolder>,
     val documents: List<DocumentEntry>,
+    val syncStatus: MSyncStatus? = null,
 )
 
 internal data class ClearRecentResult(
