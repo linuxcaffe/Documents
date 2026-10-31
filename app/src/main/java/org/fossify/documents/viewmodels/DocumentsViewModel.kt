@@ -28,6 +28,8 @@ import org.fossify.documents.R
 import org.fossify.documents.data.DocumentFolderContent
 import org.fossify.documents.data.DocumentsRepository
 import org.fossify.documents.data.RenameOutcome
+import org.fossify.documents.data.TransferMode
+import org.fossify.documents.data.TransferResult
 import org.fossify.documents.data.createChildFolder
 import org.fossify.documents.data.newDocumentFileName
 import org.fossify.documents.helpers.Config
@@ -503,6 +505,25 @@ class DocumentsViewModel(
             withContext(Dispatchers.Main) { onDone(created) }
         }
     }
+
+    /** Moves or copies the selected files (not folders) into [targetFolderUri]. */
+    internal fun transferSelectedDocuments(
+        targetFolderUri: String,
+        mode: TransferMode,
+        onDone: (TransferResult) -> Unit,
+    ) {
+        val documents = selectedDocuments.value.values.map { it.document }.distinctBy { it.uri }
+        if (documents.isEmpty()) return
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = repository.transferDocuments(documents, targetFolderUri, mode)
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(result) }
+        }
+    }
+
+    internal suspend fun childFolders(folder: DocumentFolder): List<DocumentFolder> =
+        withContext(Dispatchers.IO) { repository.childFolders(folder.uri) }
 
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {

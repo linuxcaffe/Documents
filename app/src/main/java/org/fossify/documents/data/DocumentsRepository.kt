@@ -134,6 +134,26 @@ class DocumentsRepository(
         return outcome
     }
 
+    /** Moves or copies files into a folder; moved files keep their place in the app's lists. */
+    internal fun transferDocuments(
+        documents: List<DocumentEntry>,
+        targetFolderUri: String,
+        mode: TransferMode,
+    ): TransferResult {
+        val result = appContext.transferDocuments(documents.map { it.uri to it.name }, targetFolderUri.toUri(), mode)
+        if (mode == TransferMode.MOVE && result.done.isNotEmpty()) {
+            store.updateDocuments { entries ->
+                entries.map { entry -> result.done[entry.uri]?.let { entry.copy(uri = it) } ?: entry }
+            }
+        }
+        return result
+    }
+
+    /** The folders inside a folder, for the folder chooser; empty when it can't be read. */
+    internal fun childFolders(folderUri: String): List<DocumentFolder> {
+        return runCatching { scanner.readFolderContent(folderUri.toUri(), null).childFolders }.getOrDefault(emptyList())
+    }
+
     fun setFavorites(documents: Collection<DocumentEntry>, favorite: Boolean) {
         if (documents.isEmpty()) {
             return

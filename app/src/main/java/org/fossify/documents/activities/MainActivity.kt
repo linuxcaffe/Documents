@@ -27,6 +27,7 @@ import org.fossify.commons.models.FAQItem
 import org.fossify.documents.BuildConfig
 import org.fossify.documents.R
 import org.fossify.documents.data.RenameOutcome
+import org.fossify.documents.data.TransferMode
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.extensions.startAboutActivity
 import org.fossify.documents.models.DocumentEntry
@@ -76,6 +77,20 @@ class MainActivity : BaseComposeActivity() {
             val data = result.data ?: return@registerForActivityResult
             val uri = data.data ?: return@registerForActivityResult
             viewModel.rememberFolder(uri, data.flags)
+        }
+
+    private var pendingTransfer: TransferMode? = null
+
+    // Move to / Copy to, "Other folder…": the chosen folder is remembered too, so the chooser offers it next time
+    private val transferFolderLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val mode = pendingTransfer ?: return@registerForActivityResult
+            pendingTransfer = null
+            val uri = result.data?.data?.takeIf { result.resultCode == RESULT_OK } ?: return@registerForActivityResult
+            viewModel.rememberFolder(uri, result.data?.flags ?: 0)
+            viewModel.transferSelectedDocuments(uri.toString(), mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
+            }
         }
 
     private val createTextDocumentLauncher =
@@ -162,6 +177,16 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        loadChildFolders = viewModel::childFolders,
+        onTransferSelection = { folderUri, mode ->
+            viewModel.transferSelectedDocuments(folderUri, mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
+            }
+        },
+        onTransferToOtherFolder = { mode ->
+            pendingTransfer = mode
+            transferFolderLauncher.launch(DocumentsViewModel.openFolderIntent)
+        },
         onNewFolder = { name ->
             viewModel.createFolder(name) { created ->
                 if (!created) {

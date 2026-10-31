@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import org.fossify.commons.compose.theme.SimpleTheme
 import org.fossify.documents.R
+import org.fossify.documents.data.TransferMode
 import org.fossify.documents.viewmodels.DocumentsHomeSection
 import org.fossify.documents.viewmodels.DocumentsUiState
 
@@ -121,6 +122,27 @@ private fun DocumentsSelectionOverflowMenu(
     }
 
     var expanded by remember { mutableStateOf(false) }
+    // Move to / Copy to: files only, like Delete
+    val transferable = deletable != null
+    var transferMode by remember { mutableStateOf<TransferMode?>(null) }
+    transferMode?.let { mode ->
+        val move = mode == TransferMode.MOVE
+        FolderChooserDialog(
+            title = stringResource(if (move) R.string.transfer_move_to else R.string.transfer_copy_to),
+            confirmLabel = stringResource(if (move) R.string.transfer_move_here else R.string.transfer_copy_here),
+            roots = uiState.folders,
+            loadChildren = actions.loadChildFolders,
+            onChoose = { folder ->
+                transferMode = null
+                actions.onTransferSelection(folder.uri, mode)
+            },
+            onOtherFolder = {
+                transferMode = null
+                actions.onTransferToOtherFolder(mode)
+            },
+            onDismiss = { transferMode = null },
+        )
+    }
     var confirmDelete by remember { mutableStateOf(false) }
     if (confirmDelete && deletable != null) {
         DeleteDocumentsDialog(
@@ -177,6 +199,22 @@ private fun DocumentsSelectionOverflowMenu(
                     onClick = {
                         expanded = false
                         renaming = true
+                    },
+                )
+            }
+            if (transferable) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.transfer_move_to)) },
+                    onClick = {
+                        expanded = false
+                        transferMode = TransferMode.MOVE
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.transfer_copy_to)) },
+                    onClick = {
+                        expanded = false
+                        transferMode = TransferMode.COPY
                     },
                 )
             }
