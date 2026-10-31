@@ -34,5 +34,6 @@ internal data class DocumentsMainActions(
     val onOpenWith: (DocumentEntry) -> Unit,
     val onShareDocuments: (List<DocumentEntry>) -> Unit,
     val onRemoveSelection: () -> Unit,
+    val onDeleteSelection: () -> Unit,
     val onToggleSelectedFavorites: () -> Unit,
 )

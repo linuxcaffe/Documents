@@ -10,6 +10,9 @@ import android.provider.DocumentsContract
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -29,6 +32,7 @@ import org.fossify.documents.data.DocumentsRepository
 import org.fossify.documents.extensions.config
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.helpers.PdfDocumentAdapter
+import org.fossify.documents.ui.screens.DeleteDocumentsDialog
 import org.fossify.documents.ui.screens.PdfDocumentScreen
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
 import org.fossify.documents.viewmodels.PdfDocumentViewModel
@@ -78,6 +82,8 @@ class PDFViewerActivity : BaseComposeActivity() {
                     .collectAsStateWithLifecycle(preferences.pdfPageIndicator)
                 val horizontalPaging by preferences.pdfHorizontalPagingFlow
                     .collectAsStateWithLifecycle(preferences.pdfHorizontalPaging)
+                val canDelete by rememberCanDeleteDocument(uri)
+                var confirmDelete by remember { mutableStateOf(false) }
                 PdfDocumentScreen(
                     uri = uri,
                     title = title,
@@ -102,7 +108,19 @@ class PDFViewerActivity : BaseComposeActivity() {
                     horizontalPaging = horizontalPaging,
                     onNightModeChange = { preferences.pdfDarkPages = it },
                     onSettings = { startActivity(Intent(this, SettingsActivity::class.java)) },
+                    onDelete = if (canDelete) ({ confirmDelete = true }) else null,
                 )
+                if (confirmDelete) {
+                    DeleteDocumentsDialog(
+                        count = 1,
+                        name = title,
+                        onConfirm = {
+                            confirmDelete = false
+                            deleteViewedDocument(uri)
+                        },
+                        onDismiss = { confirmDelete = false },
+                    )
+                }
             }
         }
     }

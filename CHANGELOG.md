@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a share button to document readers ([#98])
+- Delete files from the selection bar and from the viewers, after a confirmation
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
