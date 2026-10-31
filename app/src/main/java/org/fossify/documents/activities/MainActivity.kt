@@ -84,8 +84,8 @@ class MainActivity : BaseComposeActivity() {
             pendingTransfer = null
             val uri = result.data?.data?.takeIf { result.resultCode == RESULT_OK } ?: return@registerForActivityResult
             viewModel.rememberFolder(uri, result.data?.flags ?: 0)
-            viewModel.transferSelectedDocuments(uri.toString(), mode) { result ->
-                transferReport(mode, result)?.let { report -> toast(report) }
+            viewModel.transferSelectedDocuments(uri.toString(), mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
             }
         }
 
@@ -176,8 +176,8 @@ class MainActivity : BaseComposeActivity() {
         onRemoveSelection = viewModel::removeSelectedItems,
         loadChildFolders = viewModel::childFolders,
         onTransferSelection = { folderUri, mode ->
-            viewModel.transferSelectedDocuments(folderUri, mode) { result ->
-                transferReport(mode, result)?.let { report -> toast(report) }
+            viewModel.transferSelectedDocuments(folderUri, mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
             }
         },
         onTransferToOtherFolder = { mode ->
