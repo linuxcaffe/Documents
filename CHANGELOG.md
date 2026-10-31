@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delete files from the selection bar and from the viewers, after a confirmation
 - Rename a file from the selection bar
 - New folder in the + menu while browsing a folder
+- A smaller editor header in landscape, and options to scroll the header away and to hide the Markdown formatting toolbar
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app

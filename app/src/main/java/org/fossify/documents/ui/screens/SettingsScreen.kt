@@ -28,6 +28,8 @@ internal fun SettingsScreen(
     showFileLocations: Boolean,
     createInCurrentFolder: Boolean,
     showHiddenFiles: Boolean,
+    scrollEditorHeader: Boolean,
+    showFormattingToolbar: Boolean,
     onUseEnglishPress: (Boolean) -> Unit,
     onSetupLanguagePress: () -> Unit,
     onRememberPdfPageChange: (Boolean) -> Unit,
@@ -36,6 +38,8 @@ internal fun SettingsScreen(
     onShowFileLocationsChange: (Boolean) -> Unit,
     onCreateInCurrentFolderChange: (Boolean) -> Unit,
     onShowHiddenFilesChange: (Boolean) -> Unit,
+    onScrollEditorHeaderChange: (Boolean) -> Unit,
+    onShowFormattingToolbarChange: (Boolean) -> Unit,
     customizeColors: () -> Unit,
     goBack: () -> Unit,
 ) {
@@ -99,6 +103,24 @@ internal fun SettingsScreen(
 
         SettingsHorizontalDivider()
         SettingsGroup(title = {
+            SettingsTitleTextComponent(text = stringResource(id = R.string.text_editor_settings))
+        }) {
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.scroll_editor_header),
+                initialValue = scrollEditorHeader,
+                onChange = onScrollEditorHeaderChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.show_formatting_toolbar),
+                initialValue = showFormattingToolbar,
+                onChange = onShowFormattingToolbarChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
+        }
+
+        SettingsHorizontalDivider()
+        SettingsGroup(title = {
             SettingsTitleTextComponent(text = stringResource(id = R.string.pdf_reading))
         }) {
             SettingsSwitchComponent(
@@ -138,6 +160,8 @@ private fun SettingsScreenPreview() {
             showFileLocations = false,
             createInCurrentFolder = true,
             showHiddenFiles = false,
+            scrollEditorHeader = false,
+            showFormattingToolbar = true,
             onUseEnglishPress = {},
             onSetupLanguagePress = {},
             onRememberPdfPageChange = {},
@@ -146,6 +170,8 @@ private fun SettingsScreenPreview() {
             onShowFileLocationsChange = {},
             onCreateInCurrentFolderChange = {},
             onShowHiddenFilesChange = {},
+            onScrollEditorHeaderChange = {},
+            onShowFormattingToolbarChange = {},
             customizeColors = {},
             goBack = {},
         )

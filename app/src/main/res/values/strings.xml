@@ -157,4 +157,7 @@
     <string name="documents_new_folder_invalid_name">A name can\'t be empty or contain a slash.</string>
     <string name="documents_new_folder_failed">Could not create the folder.</string>
     <string name="rename_name_taken">A file with that name already exists here.</string>
+    <string name="text_editor_settings">Text editor</string>
+    <string name="scroll_editor_header">Scroll the header away with the text</string>
+    <string name="show_formatting_toolbar">Show the Markdown formatting toolbar</string>
 </resources>

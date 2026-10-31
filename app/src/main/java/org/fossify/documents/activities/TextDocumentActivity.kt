@@ -41,6 +41,7 @@ import org.fossify.documents.models.DocumentKind
 import org.fossify.documents.ui.screens.DEFAULT_DOCUMENT_TEXT_ZOOM
 import org.fossify.documents.ui.screens.DeleteDocumentsDialog
 import org.fossify.documents.ui.screens.LocalRelativeLinkHandler
+import org.fossify.documents.ui.screens.TextDocumentChrome
 import org.fossify.documents.ui.screens.TextDocumentScreen
 import org.fossify.documents.ui.screens.coerceDocumentTextZoom
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
@@ -142,6 +143,12 @@ class TextDocumentActivity : BaseComposeActivity() {
                             config.editorTextZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
                         },
                         onDelete = if (canDelete) ({ confirmDelete = true }) else null,
+                        chrome = remember {
+                            TextDocumentChrome(
+                                scrollHeader = config.scrollEditorHeader,
+                                showFormattingToolbar = config.showFormattingToolbar,
+                            )
+                        },
                     )
                 }
 
