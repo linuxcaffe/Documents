@@ -30,6 +30,7 @@ import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.DocumentInfo
 import org.fossify.documents.models.DocumentSort
 import org.fossify.documents.models.DocumentViewMode
 
@@ -425,6 +426,9 @@ class DocumentsViewModel(
             repository.removeFolders(folderUris)
         }
     }
+
+    internal suspend fun documentInfo(uri: String, name: String): DocumentInfo =
+        withContext(Dispatchers.IO) { repository.documentInfo(uri, name) }
 
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {

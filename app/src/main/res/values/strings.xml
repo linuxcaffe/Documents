@@ -112,4 +112,24 @@
     <string name="pdf_search_failed">Could not complete the search.</string>
     <string name="pdf_reading">PDF reading</string>
     <string name="pdf_horizontal_paging">Scroll PDFs horizontally</string>
+    <string name="info_title">Info</string>
+    <string name="info_type">Type</string>
+    <string name="info_size">Size</string>
+    <string name="info_contents">Contents</string>
+    <string name="info_modified">Modified</string>
+    <string name="info_location">Location</string>
+    <string name="info_storage">Storage</string>
+    <string name="info_path">Path</string>
+    <string name="info_access">This app can</string>
+    <string name="info_access_read_only">only read it</string>
+    <string name="info_access_edit">edit</string>
+    <string name="info_access_rename">rename</string>
+    <string name="info_access_delete">delete</string>
+    <string name="info_access_create">create files in it</string>
+    <string name="info_last_opened">Last opened</string>
+    <string name="info_favorite">Favorite</string>
+    <string name="info_in_favorites">In your favorites</string>
+    <string name="info_copy_path">Copy path</string>
+    <string name="info_copy_link">Copy link</string>
+    <string name="info_copied">Copied</string>
 </resources>
