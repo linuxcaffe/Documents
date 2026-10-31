@@ -177,6 +177,8 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        loadInfo = viewModel::documentInfo,
+        onCopyText = { text -> copyToClipboard(text) },
         loadChildFolders = viewModel::childFolders,
         onTransferSelection = { folderUri, mode ->
             viewModel.transferSelectedDocuments(folderUri, mode) { transfer ->

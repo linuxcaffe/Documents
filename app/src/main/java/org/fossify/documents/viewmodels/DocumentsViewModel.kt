@@ -36,6 +36,7 @@ import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.DocumentInfo
 import org.fossify.documents.models.DocumentSort
 import org.fossify.documents.models.DocumentViewMode
 import org.fossify.documents.models.MSyncStatus
@@ -524,6 +525,9 @@ class DocumentsViewModel(
 
     internal suspend fun childFolders(folder: DocumentFolder): List<DocumentFolder> =
         withContext(Dispatchers.IO) { repository.childFolders(folder.uri) }
+
+    internal suspend fun documentInfo(uri: String, name: String): DocumentInfo =
+        withContext(Dispatchers.IO) { repository.documentInfo(uri, name) }
 
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {

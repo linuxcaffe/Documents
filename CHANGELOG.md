@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New folder in the + menu while browsing a folder
 - A smaller editor header in landscape, and options to scroll the header away and to hide the Markdown formatting toolbar
 - Move or copy files to another folder from the selection bar
+- Info for a selected file or folder, with its path or a Markdown link to copy
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app

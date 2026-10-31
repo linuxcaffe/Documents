@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.DocumentInfo
 import org.fossify.documents.models.MSyncStatus
 
 @Suppress("TooManyFunctions")
@@ -152,6 +153,12 @@ class DocumentsRepository(
     /** The folders inside a folder, for the folder chooser; empty when it can't be read. */
     internal fun childFolders(folderUri: String): List<DocumentFolder> {
         return runCatching { scanner.readFolderContent(folderUri.toUri(), null).childFolders }.getOrDefault(emptyList())
+    }
+
+    /** Info for one file or folder; the app's own entry adds when it was last opened and whether it's a favorite. */
+    internal fun documentInfo(uri: String, name: String): DocumentInfo {
+        val entry = store.getDocuments().firstOrNull { it.uri == uri }
+        return appContext.readDocumentInfo(uri.toUri(), name, entry)
     }
 
     fun setFavorites(documents: Collection<DocumentEntry>, favorite: Boolean) {

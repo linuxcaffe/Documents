@@ -117,11 +117,27 @@ private fun DocumentsSelectionOverflowMenu(
     // files only: a selected folder can be removed from the list, never deleted from here
     val deletable = uiState.selectedDocuments.distinctBy { it.uri }
         .takeIf { it.isNotEmpty() && uiState.selectedFolders.isEmpty() }
-    if (selectedDocument == null && !canRemove && deletable == null) {
+    // Info: one file or one folder
+    val infoTarget = when {
+        uiState.selectionCount != 1 -> null
+        selectedDocument != null -> selectedDocument.uri to selectedDocument.name
+        else -> uiState.selectedFolders.singleOrNull()?.let { it.uri to it.name }
+    }
+    if (selectedDocument == null && !canRemove && deletable == null && infoTarget == null) {
         return
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf(false) }
+    if (showInfo && infoTarget != null) {
+        val (uri, name) = infoTarget
+        DocumentInfoDialog(
+            name = name,
+            loadInfo = { actions.loadInfo(uri, name) },
+            onCopy = actions.onCopyText,
+            onDismiss = { showInfo = false },
+        )
+    }
     // Move to / Copy to: files only, like Delete
     val transferable = deletable != null
     var transferMode by remember { mutableStateOf<TransferMode?>(null) }
@@ -182,6 +198,15 @@ private fun DocumentsSelectionOverflowMenu(
             modifier = Modifier.widthIn(min = DocumentsMenuMinWidth),
             offset = DocumentsEndMenuOffset,
         ) {
+            if (infoTarget != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.info_title)) },
+                    onClick = {
+                        expanded = false
+                        showInfo = true
+                    },
+                )
+            }
             if (selectedDocument != null) {
                 DropdownMenuItem(
                     text = {
