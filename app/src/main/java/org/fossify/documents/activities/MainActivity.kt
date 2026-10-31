@@ -27,7 +27,6 @@ import org.fossify.commons.models.FAQItem
 import org.fossify.documents.BuildConfig
 import org.fossify.documents.R
 import org.fossify.documents.data.TransferMode
-import org.fossify.documents.data.TransferResult
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.extensions.startAboutActivity
 import org.fossify.documents.models.DocumentEntry
@@ -37,9 +36,6 @@ import org.fossify.documents.ui.screens.MainScreen
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
 import org.fossify.documents.viewmodels.DocumentsHomeSection
 import org.fossify.documents.viewmodels.DocumentsViewModel
-
-// names listed in the "skipped" toast; more show as "…"
-private const val MAX_SKIPPED_NAMES = 3
 
 class MainActivity : BaseComposeActivity() {
     private var hasResumed = false
@@ -88,7 +84,7 @@ class MainActivity : BaseComposeActivity() {
             pendingTransfer = null
             val uri = result.data?.data?.takeIf { result.resultCode == RESULT_OK } ?: return@registerForActivityResult
             viewModel.rememberFolder(uri, result.data?.flags ?: 0)
-            viewModel.transferSelectedDocuments(uri.toString(), mode) { reportTransfer(mode, it) }
+            viewModel.transferSelectedDocuments(uri.toString(), mode) { transferReport(mode, it)?.let(::toast) }
         }
 
     private val createTextDocumentLauncher =
@@ -178,7 +174,7 @@ class MainActivity : BaseComposeActivity() {
         onRemoveSelection = viewModel::removeSelectedItems,
         loadChildFolders = viewModel::childFolders,
         onTransferSelection = { folderUri, mode ->
-            viewModel.transferSelectedDocuments(folderUri, mode) { reportTransfer(mode, it) }
+            viewModel.transferSelectedDocuments(folderUri, mode) { transferReport(mode, it)?.let(::toast) }
         },
         onTransferToOtherFolder = { mode ->
             pendingTransfer = mode
@@ -186,27 +182,6 @@ class MainActivity : BaseComposeActivity() {
         },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
-
-    private fun reportTransfer(mode: TransferMode, result: TransferResult) {
-        val lines = buildList {
-            val done = result.done.size
-            if (done > 0) {
-                val plural = if (mode == TransferMode.MOVE) R.plurals.transfer_moved else R.plurals.transfer_copied
-                add(resources.getQuantityString(plural, done, done))
-            }
-            if (result.skipped.isNotEmpty()) {
-                val names = result.skipped.take(MAX_SKIPPED_NAMES).joinToString(", ") +
-                        if (result.skipped.size > MAX_SKIPPED_NAMES) ", …" else ""
-                add(getString(R.string.transfer_skipped, names))
-            }
-            if (result.failed > 0) {
-                add(resources.getQuantityString(R.plurals.transfer_failed, result.failed, result.failed))
-            }
-        }
-        if (lines.isNotEmpty()) {
-            toast(lines.joinToString("\n"))
-        }
-    }
 
     private fun handleCreatedDocument(resultCode: Int, data: Intent?, kind: DocumentKind) {
         val uri = data?.data
