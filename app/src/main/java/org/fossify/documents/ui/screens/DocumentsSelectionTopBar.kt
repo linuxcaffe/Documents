@@ -118,6 +118,19 @@ private fun DocumentsSelectionOverflowMenu(
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf(false) }
+    val renamable = selectedDocument.takeIf { uiState.selectedFolders.isEmpty() }
+    if (renaming && renamable != null) {
+        RenameDocumentDialog(
+            name = renamable.name,
+            kind = renamable.kind,
+            onRename = { name ->
+                renaming = false
+                actions.onRenameSelection(name)
+            },
+            onDismiss = { renaming = false },
+        )
+    }
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
@@ -140,6 +153,15 @@ private fun DocumentsSelectionOverflowMenu(
                     onClick = {
                         expanded = false
                         actions.onOpenWith(selectedDocument)
+                    },
+                )
+            }
+            if (renamable != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = org.fossify.commons.R.string.rename)) },
+                    onClick = {
+                        expanded = false
+                        renaming = true
                     },
                 )
             }

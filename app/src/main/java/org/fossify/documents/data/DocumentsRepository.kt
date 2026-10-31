@@ -114,6 +114,18 @@ class DocumentsRepository(
         }
     }
 
+    /** Renames the file (in [folderUri] when it's known) and the app's entries for it. */
+    internal fun renameDocument(uri: String, name: String, folderUri: String?): RenameOutcome {
+        val outcome = appContext.renameDocumentFile(uri.toUri(), name, folderUri?.toUri())
+        if (outcome is RenameOutcome.Renamed) {
+            val renamed = outcome.uri.toString()
+            store.updateDocuments { documents ->
+                documents.map { if (it.uri == uri) it.copy(uri = renamed, name = name) else it }
+            }
+        }
+        return outcome
+    }
+
     fun setFavorites(documents: Collection<DocumentEntry>, favorite: Boolean) {
         if (documents.isEmpty()) {
             return

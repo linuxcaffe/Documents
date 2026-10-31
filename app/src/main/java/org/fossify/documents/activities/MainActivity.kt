@@ -26,6 +26,7 @@ import org.fossify.commons.helpers.LICENSE_PDF_VIEWER
 import org.fossify.commons.models.FAQItem
 import org.fossify.documents.BuildConfig
 import org.fossify.documents.R
+import org.fossify.documents.data.RenameOutcome
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.extensions.startAboutActivity
 import org.fossify.documents.models.DocumentEntry
@@ -159,6 +160,15 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        onRenameSelection = { name ->
+            viewModel.renameSelectedDocument(name) { outcome ->
+                when (outcome) {
+                    is RenameOutcome.Renamed -> Unit
+                    RenameOutcome.NameTaken -> toast(R.string.rename_name_taken)
+                    RenameOutcome.Failed -> toast(R.string.rename_failed)
+                }
+            }
+        },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
 
