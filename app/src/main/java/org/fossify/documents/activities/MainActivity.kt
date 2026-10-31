@@ -161,6 +161,13 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        onNewFolder = { name ->
+            viewModel.createFolder(name) { created ->
+                if (!created) {
+                    toast(R.string.documents_new_folder_failed)
+                }
+            }
+        },
         onRenameSelection = { name ->
             viewModel.renameSelectedDocument(name) { renamed ->
                 if (!renamed) {

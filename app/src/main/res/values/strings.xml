@@ -153,4 +153,7 @@
     <string name="rename_invalid_name">A name can\'t be empty or contain a slash.</string>
     <string name="rename_links_hint">Links to the old name in other notes will stop working.</string>
     <string name="rename_failed">Could not rename the file.</string>
+    <string name="documents_new_folder">New folder</string>
+    <string name="documents_new_folder_invalid_name">A name can\'t be empty or contain a slash.</string>
+    <string name="documents_new_folder_failed">Could not create the folder.</string>
 </resources>

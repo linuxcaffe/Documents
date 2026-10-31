@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sync status strip for folders synced by m-sync (`.m-sync.json`), and conflict copies marked in listings
 - Delete files from the selection bar and from the viewers, after a confirmation
 - Rename a file from the selection bar
+- New folder in the + menu while browsing a folder
 
 ### Fixed
 - Fixed list/grid view resetting when reopening the app
