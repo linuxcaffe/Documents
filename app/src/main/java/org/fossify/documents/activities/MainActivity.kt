@@ -84,7 +84,7 @@ class MainActivity : BaseComposeActivity() {
             pendingTransfer = null
             val uri = result.data?.data?.takeIf { result.resultCode == RESULT_OK } ?: return@registerForActivityResult
             viewModel.rememberFolder(uri, result.data?.flags ?: 0)
-            viewModel.transferSelectedDocuments(uri.toString(), mode) { transferReport(mode, it)?.let(::toast) }
+            viewModel.transferSelectedDocuments(uri.toString(), mode) { transferReport(mode, it)?.let { report -> toast(report) } }
         }
 
     private val createTextDocumentLauncher =
@@ -174,7 +174,7 @@ class MainActivity : BaseComposeActivity() {
         onRemoveSelection = viewModel::removeSelectedItems,
         loadChildFolders = viewModel::childFolders,
         onTransferSelection = { folderUri, mode ->
-            viewModel.transferSelectedDocuments(folderUri, mode) { transferReport(mode, it)?.let(::toast) }
+            viewModel.transferSelectedDocuments(folderUri, mode) { transferReport(mode, it)?.let { report -> toast(report) } }
         },
         onTransferToOtherFolder = { mode ->
             pendingTransfer = mode
