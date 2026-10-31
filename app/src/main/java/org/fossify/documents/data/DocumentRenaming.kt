@@ -6,12 +6,6 @@ import android.provider.DocumentsContract
 import java.io.FileNotFoundException
 import java.io.IOException
 
-internal sealed interface RenameOutcome {
-    data class Renamed(val uri: Uri) : RenameOutcome
-    data object NameTaken : RenameOutcome
-    data object Failed : RenameOutcome
-}
-
 /**
  * Renames the file in its folder. Some providers (Termux's among them) can't rename; then, when the
  * file's folder is known, it's copied to a new file with the new name and the original deleted.
