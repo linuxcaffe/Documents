@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.fossify.documents.R
 import org.fossify.documents.data.DocumentFolderContent
 import org.fossify.documents.data.DocumentsRepository
+import org.fossify.documents.data.createChildFolder
 import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
@@ -423,6 +424,17 @@ class DocumentsViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             repository.removeDocuments(documentUris)
             repository.removeFolders(folderUris)
+        }
+    }
+
+    /** Creates a folder inside the one being browsed; onDone(false) when the provider refused. */
+    fun createFolder(name: String, onDone: (Boolean) -> Unit) {
+        val folderUri = folderPath.value.lastOrNull()?.uri
+            ?.takeIf { homeSection.value == DocumentsHomeSection.FOLDER } ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            val created = getApplication<Application>().createChildFolder(folderUri.toUri(), name) != null
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(created) }
         }
     }
 
