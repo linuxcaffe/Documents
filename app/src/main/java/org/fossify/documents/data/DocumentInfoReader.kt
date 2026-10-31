@@ -60,11 +60,11 @@ private fun Context.queryColumns(uri: Uri): InfoColumns? {
         contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
             if (!cursor.moveToFirst()) return@use null
             InfoColumns(
-                name = cursor.stringAt(0),
-                mimeType = cursor.stringAt(1),
-                size = cursor.longAt(2),
-                lastModified = cursor.longAt(3),
-                flags = cursor.longAt(4)?.toInt() ?: 0,
+                name = cursor.stringAt(Document.COLUMN_DISPLAY_NAME),
+                mimeType = cursor.stringAt(Document.COLUMN_MIME_TYPE),
+                size = cursor.longAt(Document.COLUMN_SIZE),
+                lastModified = cursor.longAt(Document.COLUMN_LAST_MODIFIED),
+                flags = cursor.longAt(Document.COLUMN_FLAGS)?.toInt() ?: 0,
             )
         }
     } catch (_: SecurityException) {
@@ -95,6 +95,8 @@ private fun documentUriOf(uri: Uri): Uri? {
     return DocumentsContract.buildDocumentUriUsingTree(uri, id)
 }
 
-private fun Cursor.stringAt(index: Int): String? = if (isNull(index)) null else getString(index)
+private fun Cursor.stringAt(column: String): String? =
+    getColumnIndex(column).takeIf { it >= 0 && !isNull(it) }?.let(::getString)
 
-private fun Cursor.longAt(index: Int): Long? = if (isNull(index)) null else getLong(index)
+private fun Cursor.longAt(column: String): Long? =
+    getColumnIndex(column).takeIf { it >= 0 && !isNull(it) }?.let(::getLong)
