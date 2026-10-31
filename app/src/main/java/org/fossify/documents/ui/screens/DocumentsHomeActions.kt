@@ -160,8 +160,19 @@ internal fun EmptyActionButton(
 @Composable
 internal fun ImportAction(
     actions: DocumentsMainActions,
+    inFolder: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var newFolder by remember { mutableStateOf(false) }
+    if (newFolder) {
+        NewFolderDialog(
+            onCreate = { name ->
+                newFolder = false
+                actions.onNewFolder(name)
+            },
+            onDismiss = { newFolder = false },
+        )
+    }
 
     Box {
         DropdownMenu(
@@ -184,6 +195,15 @@ internal fun ImportAction(
                     actions.newMarkdownFile()
                 },
             )
+            if (inFolder) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.documents_new_folder)) },
+                    onClick = {
+                        expanded = false
+                        newFolder = true
+                    },
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(id = R.string.open_file)) },
                 onClick = {

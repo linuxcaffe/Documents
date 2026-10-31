@@ -114,7 +114,10 @@ private fun DocumentsScaffold(
         },
         floatingActionButton = {
             if (!uiState.hasSelection) {
-                ImportAction(actions = actions)
+                ImportAction(
+                    actions = actions,
+                    inFolder = uiState.homeSection == DocumentsHomeSection.FOLDER && uiState.activeFolder != null,
+                )
             }
         },
     ) { innerPadding ->
