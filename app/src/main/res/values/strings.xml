@@ -112,4 +112,7 @@
     <string name="pdf_search_failed">Could not complete the search.</string>
     <string name="pdf_reading">PDF reading</string>
     <string name="pdf_horizontal_paging">Scroll PDFs horizontally</string>
+    <string name="text_editor_settings">Text editor</string>
+    <string name="scroll_editor_header">Scroll the header away with the text</string>
+    <string name="show_formatting_toolbar">Show the Markdown formatting toolbar</string>
 </resources>
