@@ -37,6 +37,7 @@ import org.fossify.documents.data.DocumentsRepository
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentKind
 import org.fossify.documents.ui.screens.DEFAULT_DOCUMENT_TEXT_ZOOM
+import org.fossify.documents.ui.screens.TextDocumentChrome
 import org.fossify.documents.ui.screens.TextDocumentScreen
 import org.fossify.documents.ui.screens.coerceDocumentTextZoom
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
@@ -133,6 +134,12 @@ class TextDocumentActivity : BaseComposeActivity() {
                     onResetTextZoom = {
                         textZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
                         config.editorTextZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
+                    },
+                    chrome = remember {
+                        TextDocumentChrome(
+                            scrollHeader = config.scrollEditorHeader,
+                            showFormattingToolbar = config.showFormattingToolbar,
+                        )
                     },
                 )
 

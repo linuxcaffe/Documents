@@ -18,6 +18,8 @@ class Config(context: Context) : BaseConfig(context) {
         private const val PDF_PAGE_INDICATOR = "pdf_page_indicator"
         private const val REMEMBER_PDF_PAGE = "remember_pdf_page"
         private const val SHOW_FILE_LOCATIONS = "show_file_locations"
+        private const val SCROLL_EDITOR_HEADER = "scroll_editor_header"
+        private const val SHOW_FORMATTING_TOOLBAR = "show_formatting_toolbar"
     }
 
     var documentViewMode: DocumentViewMode
@@ -81,4 +83,16 @@ class Config(context: Context) : BaseConfig(context) {
         }
 
     val showFileLocationsFlow = ::showFileLocations.asFlowNonNull()
+
+    var scrollEditorHeader: Boolean
+        get() = prefs.getBoolean(SCROLL_EDITOR_HEADER, false)
+        set(value) = prefs.edit { putBoolean(SCROLL_EDITOR_HEADER, value) }
+
+    val scrollEditorHeaderFlow = ::scrollEditorHeader.asFlowNonNull()
+
+    var showFormattingToolbar: Boolean
+        get() = prefs.getBoolean(SHOW_FORMATTING_TOOLBAR, true)
+        set(value) = prefs.edit { putBoolean(SHOW_FORMATTING_TOOLBAR, value) }
+
+    val showFormattingToolbarFlow = ::showFormattingToolbar.asFlowNonNull()
 }

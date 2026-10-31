@@ -2,6 +2,7 @@
 
 package org.fossify.documents.ui.screens
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,10 +19,12 @@ import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +33,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +49,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -79,6 +85,7 @@ internal fun TextDocumentScreen(
     textZoom: Float,
     onTextZoomChange: (Float) -> Unit,
     onResetTextZoom: () -> Unit,
+    chrome: TextDocumentChrome = TextDocumentChrome(),
 ) {
     LaunchedEffect(editorState) {
         snapshotFlow { editorState.text.toString() }
@@ -134,6 +141,12 @@ internal fun TextDocumentScreen(
 
     BackHandler(enabled = searchActive, onBack = closeSearch)
 
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // the Edit/Preview row folds into a top bar button when the header has to stay small
+    val modeInTopBar = uiState.isMarkdown && (landscape || chrome.scrollHeader)
+    // Fossify's SimpleScaffold pins its top bar; this one leaves with the content and comes back on the way up
+    val leavingHeader = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     SimpleScaffold(
         customTopBar = { scrolledColor: Color,
                          _,
@@ -143,6 +156,8 @@ internal fun TextDocumentScreen(
                          contrastColor: Color ->
             TextDocumentTopBar(
                 uiState = uiState,
+                compact = landscape,
+                onPreviewChange = onPreviewChange.takeIf { modeInTopBar },
                 onBack = if (searchActive) closeSearch else onBack,
                 onSave = onSave,
                 onSaveCopy = onSaveCopy,
@@ -163,7 +178,7 @@ internal fun TextDocumentScreen(
                 onTextZoomChange = onTextZoomChange,
                 onResetTextZoom = onResetTextZoom,
                 scrolledColor = scrolledColor,
-                scrollBehavior = scrollBehavior,
+                scrollBehavior = if (chrome.scrollHeader && !searchActive) leavingHeader else scrollBehavior,
                 statusBarColor = statusBarColor,
                 colorTransitionFraction = colorTransitionFraction,
                 contrastColor = contrastColor,
@@ -173,6 +188,13 @@ internal fun TextDocumentScreen(
         TextDocumentContent(
             uiState = uiState,
             editorState = editorState,
+            modifier = if (chrome.scrollHeader) {
+                Modifier.nestedScroll(leavingHeader.nestedScrollConnection)
+            } else {
+                Modifier
+            },
+            showModeRow = !modeInTopBar,
+            showFormattingToolbar = chrome.showFormattingToolbar,
             onOpenForEditing = onOpenForEditing,
             onPreviewChange = onPreviewChange,
             searchMatches = searchMatches,
@@ -186,6 +208,8 @@ internal fun TextDocumentScreen(
 @Composable
 private fun TextDocumentTopBar(
     uiState: TextDocumentUiState,
+    compact: Boolean,
+    onPreviewChange: ((Boolean) -> Unit)?,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onSaveCopy: () -> Unit,
@@ -258,6 +282,19 @@ private fun TextDocumentTopBar(
                     )
                 }
             } else {
+                if (onPreviewChange != null) {
+                    IconButton(onClick = { onPreviewChange(!uiState.previewEnabled) }) {
+                        Icon(
+                            imageVector = if (uiState.previewEnabled) Icons.Filled.Edit else Icons.Outlined.Visibility,
+                            contentDescription = if (uiState.previewEnabled) {
+                                stringResource(id = org.fossify.commons.R.string.edit)
+                            } else {
+                                stringResource(id = R.string.preview)
+                            },
+                            tint = scrolledColor,
+                        )
+                    }
+                }
                 IconButton(onClick = onSearch) {
                     Icon(
                         imageVector = Icons.Filled.Search,
@@ -291,6 +328,7 @@ private fun TextDocumentTopBar(
                 )
             }
         },
+        expandedHeight = if (compact) COMPACT_TOP_BAR_HEIGHT else TopAppBarDefaults.TopAppBarExpandedHeight,
         scrollBehavior = scrollBehavior,
         colors = simpleTopAppBarColors(statusBarColor, colorTransitionFraction, contrastColor),
         modifier = Modifier.topAppBarPaddings(),
@@ -298,19 +336,30 @@ private fun TextDocumentTopBar(
     )
 }
 
+/** How much room the editor's chrome takes (Settings: scroll the header away, show the formatting toolbar). */
+internal data class TextDocumentChrome(
+    val scrollHeader: Boolean = false,
+    val showFormattingToolbar: Boolean = true,
+)
+
+private val COMPACT_TOP_BAR_HEIGHT = 48.dp
+
 @Composable
 private fun TextDocumentContent(
     uiState: TextDocumentUiState,
     editorState: TextFieldState,
+    showModeRow: Boolean,
+    showFormattingToolbar: Boolean,
     onOpenForEditing: () -> Unit,
     onPreviewChange: (Boolean) -> Unit,
     searchMatches: List<TextRange>,
     currentSearchIndex: Int,
     textZoom: Float,
     onTextZoomChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .fillMaxSize()
             .background(SimpleTheme.colorScheme.surface)
@@ -322,6 +371,8 @@ private fun TextDocumentContent(
             else -> LoadedTextDocumentContent(
                 uiState = uiState,
                 editorState = editorState,
+                showModeRow = showModeRow,
+                showFormattingToolbar = showFormattingToolbar,
                 onOpenForEditing = onOpenForEditing,
                 onPreviewChange = onPreviewChange,
                 searchMatches = searchMatches,
@@ -337,6 +388,8 @@ private fun TextDocumentContent(
 private fun ColumnScope.LoadedTextDocumentContent(
     uiState: TextDocumentUiState,
     editorState: TextFieldState,
+    showModeRow: Boolean,
+    showFormattingToolbar: Boolean,
     onOpenForEditing: () -> Unit,
     onPreviewChange: (Boolean) -> Unit,
     searchMatches: List<TextRange>,
@@ -344,7 +397,7 @@ private fun ColumnScope.LoadedTextDocumentContent(
     textZoom: Float,
     onTextZoomChange: (Float) -> Unit,
 ) {
-    if (uiState.isMarkdown) {
+    if (uiState.isMarkdown && showModeRow) {
         MarkdownModeRow(
             previewEnabled = uiState.previewEnabled,
             onPreviewChange = onPreviewChange,
@@ -375,12 +428,13 @@ private fun ColumnScope.LoadedTextDocumentContent(
             )
         }
     }
-    val showFormattingToolbar = uiState.isMarkdown && !uiState.previewEnabled && !uiState.isReadOnly
+    val formattingToolbar = showFormattingToolbar &&
+            uiState.isMarkdown && !uiState.previewEnabled && !uiState.isReadOnly
     EditorStatusBar(
         uiState = uiState,
-        modifier = if (showFormattingToolbar) Modifier else Modifier.navigationBarsPadding(),
+        modifier = if (formattingToolbar) Modifier else Modifier.navigationBarsPadding(),
     )
-    if (showFormattingToolbar) {
+    if (formattingToolbar) {
         MarkdownFormattingToolbar(
             onAction = { action ->
                 editorState.applyMarkdownAction(action)
