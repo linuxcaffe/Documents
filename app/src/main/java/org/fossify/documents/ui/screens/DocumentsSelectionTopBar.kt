@@ -113,11 +113,27 @@ private fun DocumentsSelectionOverflowMenu(
     val selectedDocument = uiState.selectedDocuments.singleOrNull()
         ?.takeIf { uiState.selectionCount == 1 }
     val canRemove = uiState.homeSection != DocumentsHomeSection.FOLDER
-    if (selectedDocument == null && !canRemove) {
+    // Info: one file or one folder
+    val infoTarget = when {
+        uiState.selectionCount != 1 -> null
+        selectedDocument != null -> selectedDocument.uri to selectedDocument.name
+        else -> uiState.selectedFolders.singleOrNull()?.let { it.uri to it.name }
+    }
+    if (selectedDocument == null && !canRemove && infoTarget == null) {
         return
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf(false) }
+    if (showInfo && infoTarget != null) {
+        val (uri, name) = infoTarget
+        DocumentInfoDialog(
+            name = name,
+            loadInfo = { actions.loadInfo(uri, name) },
+            onCopy = actions.onCopyText,
+            onDismiss = { showInfo = false },
+        )
+    }
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
@@ -132,6 +148,15 @@ private fun DocumentsSelectionOverflowMenu(
             modifier = Modifier.widthIn(min = DocumentsMenuMinWidth),
             offset = DocumentsEndMenuOffset,
         ) {
+            if (infoTarget != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.info_title)) },
+                    onClick = {
+                        expanded = false
+                        showInfo = true
+                    },
+                )
+            }
             if (selectedDocument != null) {
                 DropdownMenuItem(
                     text = {

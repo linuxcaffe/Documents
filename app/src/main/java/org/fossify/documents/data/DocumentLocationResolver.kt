@@ -116,6 +116,9 @@ internal class DocumentLocationResolver(
         }
     }
 
+    /** The app that provides the document (Termux, Files…), for the Info dialog. */
+    fun storageLabel(uri: Uri): String = providerLabel(uri)
+
     private fun providerLabel(uri: Uri): String {
         val authority = uri.authority ?: return ""
         return runCatching {

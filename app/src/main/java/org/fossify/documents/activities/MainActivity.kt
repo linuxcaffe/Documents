@@ -159,6 +159,8 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        loadInfo = viewModel::documentInfo,
+        onCopyText = { text -> copyToClipboard(text) },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
 
