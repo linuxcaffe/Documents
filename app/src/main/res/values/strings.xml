@@ -150,4 +150,7 @@
         <item quantity="one">%1$d file could not be deleted</item>
         <item quantity="other">%1$d files could not be deleted</item>
     </plurals>
+    <string name="rename_invalid_name">A name can\'t be empty or contain a slash.</string>
+    <string name="rename_links_hint">Links to the old name in other notes will stop working.</string>
+    <string name="rename_failed">Could not rename the file.</string>
 </resources>
