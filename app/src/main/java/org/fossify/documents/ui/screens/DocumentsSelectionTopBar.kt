@@ -113,11 +113,26 @@ private fun DocumentsSelectionOverflowMenu(
     val selectedDocument = uiState.selectedDocuments.singleOrNull()
         ?.takeIf { uiState.selectionCount == 1 }
     val canRemove = uiState.homeSection != DocumentsHomeSection.FOLDER
-    if (selectedDocument == null && !canRemove) {
+    // files only: a selected folder can be removed from the list, never deleted from here
+    val deletable = uiState.selectedDocuments.distinctBy { it.uri }
+        .takeIf { it.isNotEmpty() && uiState.selectedFolders.isEmpty() }
+    if (selectedDocument == null && !canRemove && deletable == null) {
         return
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete && deletable != null) {
+        DeleteDocumentsDialog(
+            count = deletable.size,
+            name = deletable.singleOrNull()?.name,
+            onConfirm = {
+                confirmDelete = false
+                actions.onDeleteSelection()
+            },
+            onDismiss = { confirmDelete = false },
+        )
+    }
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
@@ -149,6 +164,15 @@ private fun DocumentsSelectionOverflowMenu(
                     onClick = {
                         expanded = false
                         actions.onRemoveSelection()
+                    },
+                )
+            }
+            if (deletable != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = org.fossify.commons.R.string.delete)) },
+                    onClick = {
+                        expanded = false
+                        confirmDelete = true
                     },
                 )
             }

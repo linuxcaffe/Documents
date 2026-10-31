@@ -159,6 +159,16 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        onDeleteSelection = {
+            viewModel.deleteSelectedDocuments { deleted, failed ->
+                if (deleted > 0) {
+                    toast(resources.getQuantityString(R.plurals.delete_files_done, deleted, deleted))
+                }
+                if (failed > 0) {
+                    toast(resources.getQuantityString(R.plurals.delete_files_failed, failed, failed))
+                }
+            }
+        },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
 
