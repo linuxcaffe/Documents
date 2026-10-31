@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,12 +27,20 @@ import kotlinx.coroutines.withContext
 import org.fossify.documents.R
 import org.fossify.documents.data.DocumentFolderContent
 import org.fossify.documents.data.DocumentsRepository
+import org.fossify.documents.data.RenameOutcome
+import org.fossify.documents.data.TransferMode
+import org.fossify.documents.data.TransferResult
+import org.fossify.documents.data.createChildFolder
+import org.fossify.documents.data.newDocumentFileName
 import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.DocumentInfo
 import org.fossify.documents.models.DocumentSort
 import org.fossify.documents.models.DocumentViewMode
+import org.fossify.documents.models.MSyncStatus
+import org.fossify.documents.models.NewDocumentType
 
 private const val UI_STATE_STOP_TIMEOUT_MS = 5_000L
 
@@ -52,6 +61,8 @@ class DocumentsViewModel(
     private var folderOriginSection = DocumentsHomeSection.HOME
     private val selectedDocuments = MutableStateFlow<Map<String, SelectedDocument>>(emptyMap())
     private val selectedFolders = MutableStateFlow<Map<String, DocumentFolder>>(emptyMap())
+    private val pendingNewDocumentState = MutableStateFlow<NewDocumentType?>(null)
+    val pendingNewDocument: StateFlow<NewDocumentType?> = pendingNewDocumentState.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -227,6 +238,7 @@ class DocumentsViewModel(
             availableFilters = availableFilters,
             isFolderLoading = folderState.isLoading && folderState.uri == requestedFolderUri,
             folderError = folderState.error.takeIf { folderState.uri == requestedFolderUri },
+            folderSyncStatus = activeFolderContent?.syncStatus,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -356,6 +368,38 @@ class DocumentsViewModel(
         folderRefresh.value += 1L
     }
 
+    /** New files go straight into the folder being browsed, skipping the system file picker. */
+    fun canCreateInActiveFolder(): Boolean {
+        return config.createInCurrentFolder &&
+                homeSection.value == DocumentsHomeSection.FOLDER &&
+                folderPath.value.isNotEmpty()
+    }
+
+    fun requestNewDocument(type: NewDocumentType) {
+        pendingNewDocumentState.value = type
+    }
+
+    fun dismissNewDocument() {
+        pendingNewDocumentState.value = null
+    }
+
+    fun createDocumentInActiveFolder(name: String, onCreated: (Uri?, NewDocumentType) -> Unit) {
+        val type = pendingNewDocumentState.value ?: return
+        val folderUri = folderPath.value.lastOrNull()?.uri ?: return
+        pendingNewDocumentState.value = null
+        viewModelScope.launch {
+            val uri = withContext(Dispatchers.IO) {
+                repository.createDocumentInFolder(
+                    folderUri = folderUri,
+                    displayName = newDocumentFileName(name, type.extension),
+                    mimeType = type.mimeType,
+                )
+            }
+            refreshVisibleFolder()
+            onCreated(uri, type)
+        }
+    }
+
     fun toggleDocumentSelection(selectionKey: String, document: DocumentEntry) {
         selectedFolders.value = emptyMap()
         selectedDocuments.value = selectedDocuments.value.toMutableMap().apply {
@@ -425,6 +469,65 @@ class DocumentsViewModel(
             repository.removeFolders(folderUris)
         }
     }
+
+    /** Deletes the selected files (not folders); onDone gets how many were deleted and how many failed. */
+    fun deleteSelectedDocuments(onDone: (deleted: Int, failed: Int) -> Unit) {
+        val documentUris = selectedDocuments.value.values.map { it.document.uri }.distinct()
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val deleted = repository.deleteDocuments(documentUris)
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) {
+                onDone(deleted.size, documentUris.size - deleted.size)
+            }
+        }
+    }
+
+    /** Renames the one selected file, inside the browsed folder when there is one. */
+    internal fun renameSelectedDocument(name: String, onDone: (RenameOutcome) -> Unit) {
+        val document = selectedDocuments.value.values.map { it.document }.distinctBy { it.uri }.singleOrNull()
+            ?: return
+        val folderUri = folderPath.value.lastOrNull()?.uri?.takeIf { homeSection.value == DocumentsHomeSection.FOLDER }
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val outcome = repository.renameDocument(document.uri, name, folderUri)
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(outcome) }
+        }
+    }
+
+    /** Creates a folder inside the one being browsed; onDone(false) when the provider refused. */
+    fun createFolder(name: String, onDone: (Boolean) -> Unit) {
+        val folderUri = folderPath.value.lastOrNull()?.uri
+            ?.takeIf { homeSection.value == DocumentsHomeSection.FOLDER } ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            val created = getApplication<Application>().createChildFolder(folderUri.toUri(), name) != null
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(created) }
+        }
+    }
+
+    /** Moves or copies the selected files (not folders) into [targetFolderUri]. */
+    internal fun transferSelectedDocuments(
+        targetFolderUri: String,
+        mode: TransferMode,
+        onDone: (TransferResult) -> Unit,
+    ) {
+        val documents = selectedDocuments.value.values.map { it.document }.distinctBy { it.uri }
+        if (documents.isEmpty()) return
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = repository.transferDocuments(documents, targetFolderUri, mode)
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(result) }
+        }
+    }
+
+    internal suspend fun childFolders(folder: DocumentFolder): List<DocumentFolder> =
+        withContext(Dispatchers.IO) { repository.childFolders(folder.uri) }
+
+    internal suspend fun documentInfo(uri: String, name: String): DocumentInfo =
+        withContext(Dispatchers.IO) { repository.documentInfo(uri, name) }
 
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -559,6 +662,7 @@ data class DocumentsUiState(
     val availableFilters: Set<DocumentFilter> = emptySet(),
     val isFolderLoading: Boolean = false,
     val folderError: String? = null,
+    val folderSyncStatus: MSyncStatus? = null,
 ) {
     val selectionCount: Int
         get() = selectedDocumentKeys.size + selectedFolders.size

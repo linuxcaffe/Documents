@@ -113,6 +113,7 @@ internal fun TextDocumentOverflowMenu(
     canSaveCopy: Boolean,
     isReadOnly: Boolean,
     onOpenForEditing: () -> Unit,
+    onDelete: (() -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -179,6 +180,15 @@ internal fun TextDocumentOverflowMenu(
                     onResetTextZoom()
                 },
             )
+            if (onDelete != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = org.fossify.commons.R.string.delete)) },
+                    onClick = {
+                        expanded = false
+                        onDelete()
+                    },
+                )
+            }
         }
     }
 }

@@ -26,12 +26,20 @@ internal fun SettingsScreen(
     horizontalPdfPaging: Boolean,
     showPdfPageIndicator: Boolean,
     showFileLocations: Boolean,
+    createInCurrentFolder: Boolean,
+    showHiddenFiles: Boolean,
+    scrollEditorHeader: Boolean,
+    showFormattingToolbar: Boolean,
     onUseEnglishPress: (Boolean) -> Unit,
     onSetupLanguagePress: () -> Unit,
     onRememberPdfPageChange: (Boolean) -> Unit,
     onHorizontalPdfPagingChange: (Boolean) -> Unit,
     onPdfPageIndicatorChange: (Boolean) -> Unit,
     onShowFileLocationsChange: (Boolean) -> Unit,
+    onCreateInCurrentFolderChange: (Boolean) -> Unit,
+    onShowHiddenFilesChange: (Boolean) -> Unit,
+    onScrollEditorHeaderChange: (Boolean) -> Unit,
+    onShowFormattingToolbarChange: (Boolean) -> Unit,
     customizeColors: () -> Unit,
     goBack: () -> Unit,
 ) {
@@ -79,6 +87,36 @@ internal fun SettingsScreen(
                 onChange = onShowFileLocationsChange,
                 showCheckmark = isShowingCheckmarksOnSwitches,
             )
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.create_in_current_folder),
+                initialValue = createInCurrentFolder,
+                onChange = onCreateInCurrentFolderChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.show_hidden_files),
+                initialValue = showHiddenFiles,
+                onChange = onShowHiddenFilesChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
+        }
+
+        SettingsHorizontalDivider()
+        SettingsGroup(title = {
+            SettingsTitleTextComponent(text = stringResource(id = R.string.text_editor_settings))
+        }) {
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.scroll_editor_header),
+                initialValue = scrollEditorHeader,
+                onChange = onScrollEditorHeaderChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
+            SettingsSwitchComponent(
+                label = stringResource(id = R.string.show_formatting_toolbar),
+                initialValue = showFormattingToolbar,
+                onChange = onShowFormattingToolbarChange,
+                showCheckmark = isShowingCheckmarksOnSwitches,
+            )
         }
 
         SettingsHorizontalDivider()
@@ -120,12 +158,20 @@ private fun SettingsScreenPreview() {
             horizontalPdfPaging = false,
             showPdfPageIndicator = true,
             showFileLocations = false,
+            createInCurrentFolder = true,
+            showHiddenFiles = false,
+            scrollEditorHeader = false,
+            showFormattingToolbar = true,
             onUseEnglishPress = {},
             onSetupLanguagePress = {},
             onRememberPdfPageChange = {},
             onHorizontalPdfPagingChange = {},
             onPdfPageIndicatorChange = {},
             onShowFileLocationsChange = {},
+            onCreateInCurrentFolderChange = {},
+            onShowHiddenFilesChange = {},
+            onScrollEditorHeaderChange = {},
+            onShowFormattingToolbarChange = {},
             customizeColors = {},
             goBack = {},
         )

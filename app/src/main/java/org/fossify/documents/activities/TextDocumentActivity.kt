@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,9 +35,13 @@ import org.fossify.commons.extensions.toast
 import org.fossify.documents.R
 import org.fossify.documents.data.DocumentLocationResolver
 import org.fossify.documents.data.DocumentsRepository
+import org.fossify.documents.data.resolveRelativeDocumentLink
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentKind
 import org.fossify.documents.ui.screens.DEFAULT_DOCUMENT_TEXT_ZOOM
+import org.fossify.documents.ui.screens.DeleteDocumentsDialog
+import org.fossify.documents.ui.screens.LocalRelativeLinkHandler
+import org.fossify.documents.ui.screens.TextDocumentChrome
 import org.fossify.documents.ui.screens.TextDocumentScreen
 import org.fossify.documents.ui.screens.coerceDocumentTextZoom
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
@@ -100,6 +105,8 @@ class TextDocumentActivity : BaseComposeActivity() {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 var showDiscardDialog by remember { mutableStateOf(false) }
                 var showReopenDialog by rememberSaveable { mutableStateOf(false) }
+                var confirmDelete by remember { mutableStateOf(false) }
+                val canDelete by rememberCanDeleteDocument(viewModel.documentUri)
                 var textZoom by remember {
                     mutableFloatStateOf(config.editorTextZoom.coerceDocumentTextZoom())
                 }
@@ -114,27 +121,49 @@ class TextDocumentActivity : BaseComposeActivity() {
 
                 BackHandler(enabled = !showDiscardDialog, onBack = requestClose)
 
-                TextDocumentScreen(
-                    uiState = uiState,
-                    editorState = viewModel.editorState,
-                    onBack = requestClose,
-                    onTextChange = viewModel::onTextChange,
-                    onSave = { viewModel.save() },
-                    onOpenWith = { viewModel.documentUri?.let(::openWith) },
-                    onSaveCopy = { saveCopy() },
-                    onOpenForEditing = { showReopenDialog = true },
-                    onPreviewChange = viewModel::setPreviewEnabled,
-                    textZoom = textZoom,
-                    onTextZoomChange = { requestedZoom ->
-                        val zoom = requestedZoom.coerceDocumentTextZoom()
-                        textZoom = zoom
-                        config.editorTextZoom = zoom
-                    },
-                    onResetTextZoom = {
-                        textZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
-                        config.editorTextZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
-                    },
-                )
+                CompositionLocalProvider(LocalRelativeLinkHandler provides ::openRelativeLink) {
+                    TextDocumentScreen(
+                        uiState = uiState,
+                        editorState = viewModel.editorState,
+                        onBack = requestClose,
+                        onTextChange = viewModel::onTextChange,
+                        onSave = { viewModel.save() },
+                        onOpenWith = { viewModel.documentUri?.let(::openWith) },
+                        onSaveCopy = { saveCopy() },
+                        onOpenForEditing = { showReopenDialog = true },
+                        onPreviewChange = viewModel::setPreviewEnabled,
+                        textZoom = textZoom,
+                        onTextZoomChange = { requestedZoom ->
+                            val zoom = requestedZoom.coerceDocumentTextZoom()
+                            textZoom = zoom
+                            config.editorTextZoom = zoom
+                        },
+                        onResetTextZoom = {
+                            textZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
+                            config.editorTextZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
+                        },
+                        onDelete = if (canDelete) ({ confirmDelete = true }) else null,
+                        chrome = remember {
+                            TextDocumentChrome(
+                                scrollHeader = config.scrollEditorHeader,
+                                showFormattingToolbar = config.showFormattingToolbar,
+                            )
+                        },
+                    )
+                }
+
+                val deleteUri = viewModel.documentUri
+                if (confirmDelete && deleteUri != null) {
+                    DeleteDocumentsDialog(
+                        count = 1,
+                        name = uiState.title.ifBlank { null },
+                        onConfirm = {
+                            confirmDelete = false
+                            deleteViewedDocument(deleteUri)
+                        },
+                        onDismiss = { confirmDelete = false },
+                    )
+                }
 
                 if (showReopenDialog) {
                     AlertDialog(
@@ -244,6 +273,23 @@ class TextDocumentActivity : BaseComposeActivity() {
                 openForEditing.launch(request)
             } catch (_: ActivityNotFoundException) {
                 toast(org.fossify.commons.R.string.no_app_found)
+            }
+        }
+    }
+
+    private fun openRelativeLink(destination: String) {
+        val currentUri = viewModel.documentUri ?: return
+        lifecycleScope.launch {
+            val intent = withContext(Dispatchers.IO) {
+                resolveRelativeDocumentLink(currentUri, destination)?.let { target ->
+                    val kind = DocumentKind.fromName(getFilenameFromUri(target), getMimeTypeFromUri(target))
+                    documentViewerIntent(target, kind, prepared = false)
+                }
+            }
+            if (intent == null) {
+                toast(R.string.relative_link_unavailable)
+            } else {
+                startActivity(intent)
             }
         }
     }

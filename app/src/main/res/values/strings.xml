@@ -60,6 +60,7 @@
     <string name="open_folder_empty_hint">Open a folder to browse supported documents.</string>
     <string name="open_document_empty_hint">Open a document or folder to get started.</string>
     <string name="next_page">Next page</string>
+    <string name="file_not_text">This file doesn\'t look like text, so it can\'t be opened here.</string>
     <string name="page_count_value">%1$d / %2$d</string>
     <string name="pdf_print_whole_document_only">Only the entire PDF can be printed.</string>
     <string name="previous_page">Previous page</string>
@@ -67,8 +68,15 @@
     <string name="preview">Preview</string>
     <string name="new_markdown_file">New markdown file</string>
     <string name="new_text_file">New text file</string>
+    <string name="new_file_name">Name</string>
+    <string name="new_file_name_hint">Created in %1$s. Leave blank for a timestamp name.</string>
+    <string name="new_file_failed">Could not create the file in this folder.</string>
+    <string name="choose_location">Choose location…</string>
+    <string name="create_document">Create</string>
+    <string name="create_in_current_folder">Create new files in the current folder</string>
     <string name="recent">Recent</string>
     <string name="read_only">Read-only</string>
+    <string name="relative_link_unavailable">Could not open the linked file. Links to other files work in documents opened from a folder.</string>
     <string name="remember_pdf_page">Remember PDF page</string>
     <string name="remove_from_documents">Remove from Documents</string>
     <string name="retry">Retry</string>
@@ -82,6 +90,7 @@
         <item quantity="other">%1$d selected</item>
     </plurals>
     <string name="show_file_locations">Show file locations</string>
+    <string name="show_hidden_files">Show hidden files</string>
     <string name="sort_name_ascending">Name (A-Z)</string>
     <string name="sort_name_descending">Name (Z-A)</string>
     <string name="sort_recent">Recent</string>
@@ -112,4 +121,82 @@
     <string name="pdf_search_failed">Could not complete the search.</string>
     <string name="pdf_reading">PDF reading</string>
     <string name="pdf_horizontal_paging">Scroll PDFs horizontally</string>
+    <string name="m_sync_synced">Synced</string>
+    <string name="m_sync_synced_at">Synced %1$s</string>
+    <string name="m_sync_offline">Offline</string>
+    <plurals name="m_sync_offline_waiting">
+        <item quantity="one">Offline: %1$d change waiting</item>
+        <item quantity="other">Offline: %1$d changes waiting</item>
+    </plurals>
+    <string name="m_sync_last_synced">last synced %1$s</string>
+    <string name="m_sync_conflict_one">Conflict: %1$s changed on two devices</string>
+    <plurals name="m_sync_conflicts">
+        <item quantity="one">%1$d conflict copy to look at</item>
+        <item quantity="other">%1$d conflict copies to look at</item>
+    </plurals>
+    <string name="m_sync_problem">Sync problem: %1$s</string>
+    <string name="m_sync_conflict_copy_meta">Conflict copy · %1$s</string>
+    <string name="delete_file_title">Delete %1$s?</string>
+    <plurals name="delete_files_title">
+        <item quantity="one">Delete %1$d file?</item>
+        <item quantity="other">Delete %1$d files?</item>
+    </plurals>
+    <string name="delete_files_hint">The file is deleted from its folder, not just removed from Documents. This can\'t be undone.</string>
+    <plurals name="delete_files_done">
+        <item quantity="one">Deleted %1$d file</item>
+        <item quantity="other">Deleted %1$d files</item>
+    </plurals>
+    <plurals name="delete_files_failed">
+        <item quantity="one">%1$d file could not be deleted</item>
+        <item quantity="other">%1$d files could not be deleted</item>
+    </plurals>
+    <string name="rename_invalid_name">A name can\'t be empty or contain a slash.</string>
+    <string name="rename_links_hint">Links to the old name in other notes will stop working.</string>
+    <string name="rename_failed">Could not rename the file.</string>
+    <string name="documents_new_folder">New folder</string>
+    <string name="documents_new_folder_invalid_name">A name can\'t be empty or contain a slash.</string>
+    <string name="documents_new_folder_failed">Could not create the folder.</string>
+    <string name="rename_name_taken">A file with that name already exists here.</string>
+    <string name="text_editor_settings">Text editor</string>
+    <string name="scroll_editor_header">Scroll the header away with the text</string>
+    <string name="show_formatting_toolbar">Show the Markdown formatting toolbar</string>
+    <string name="transfer_move_to">Move to…</string>
+    <string name="transfer_copy_to">Copy to…</string>
+    <string name="transfer_move_here">Move here</string>
+    <string name="transfer_copy_here">Copy here</string>
+    <string name="transfer_other_folder">Other folder…</string>
+    <string name="transfer_no_folders">No folders here</string>
+    <plurals name="transfer_moved">
+        <item quantity="one">Moved %1$d file</item>
+        <item quantity="other">Moved %1$d files</item>
+    </plurals>
+    <plurals name="transfer_copied">
+        <item quantity="one">Copied %1$d file</item>
+        <item quantity="other">Copied %1$d files</item>
+    </plurals>
+    <string name="transfer_skipped">Already there, skipped: %1$s</string>
+    <plurals name="transfer_failed">
+        <item quantity="one">%1$d file could not be moved or copied</item>
+        <item quantity="other">%1$d files could not be moved or copied</item>
+    </plurals>
+    <string name="info_title">Info</string>
+    <string name="info_type">Type</string>
+    <string name="info_size">Size</string>
+    <string name="info_contents">Contents</string>
+    <string name="info_modified">Modified</string>
+    <string name="info_location">Location</string>
+    <string name="info_storage">Storage</string>
+    <string name="info_path">Path</string>
+    <string name="info_access">This app can</string>
+    <string name="info_access_read_only">only read it</string>
+    <string name="info_access_edit">edit</string>
+    <string name="info_access_rename">rename</string>
+    <string name="info_access_delete">delete</string>
+    <string name="info_access_create">create files in it</string>
+    <string name="info_last_opened">Last opened</string>
+    <string name="info_favorite">Favorite</string>
+    <string name="info_in_favorites">In your favorites</string>
+    <string name="info_copy_path">Copy path</string>
+    <string name="info_copy_link">Copy link</string>
+    <string name="info_copied">Copied</string>
 </resources>

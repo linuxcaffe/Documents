@@ -9,6 +9,7 @@ class Config(context: Context) : BaseConfig(context) {
     companion object {
         fun newInstance(context: Context) = Config(context)
 
+        private const val CREATE_IN_CURRENT_FOLDER = "create_in_current_folder"
         private const val DOCUMENT_VIEW_MODE = "document_view_mode"
         private const val DOCUMENTS = "documents"
         private const val DOCUMENT_FOLDERS = "document_folders"
@@ -18,6 +19,9 @@ class Config(context: Context) : BaseConfig(context) {
         private const val PDF_PAGE_INDICATOR = "pdf_page_indicator"
         private const val REMEMBER_PDF_PAGE = "remember_pdf_page"
         private const val SHOW_FILE_LOCATIONS = "show_file_locations"
+        private const val SCROLL_EDITOR_HEADER = "scroll_editor_header"
+        private const val SHOW_FORMATTING_TOOLBAR = "show_formatting_toolbar"
+        private const val SHOW_HIDDEN_FILES = "show_hidden_files"
     }
 
     var documentViewMode: DocumentViewMode
@@ -81,4 +85,32 @@ class Config(context: Context) : BaseConfig(context) {
         }
 
     val showFileLocationsFlow = ::showFileLocations.asFlowNonNull()
+
+    var scrollEditorHeader: Boolean
+        get() = prefs.getBoolean(SCROLL_EDITOR_HEADER, false)
+        set(value) = prefs.edit { putBoolean(SCROLL_EDITOR_HEADER, value) }
+
+    val scrollEditorHeaderFlow = ::scrollEditorHeader.asFlowNonNull()
+
+    var showFormattingToolbar: Boolean
+        get() = prefs.getBoolean(SHOW_FORMATTING_TOOLBAR, true)
+        set(value) = prefs.edit { putBoolean(SHOW_FORMATTING_TOOLBAR, value) }
+
+    val showFormattingToolbarFlow = ::showFormattingToolbar.asFlowNonNull()
+
+    var createInCurrentFolder: Boolean
+        get() = prefs.getBoolean(CREATE_IN_CURRENT_FOLDER, true)
+        set(value) = prefs.edit {
+            putBoolean(CREATE_IN_CURRENT_FOLDER, value)
+        }
+
+    val createInCurrentFolderFlow = ::createInCurrentFolder.asFlowNonNull()
+
+    var showHiddenFiles: Boolean
+        get() = prefs.getBoolean(SHOW_HIDDEN_FILES, false)
+        set(value) = prefs.edit {
+            putBoolean(SHOW_HIDDEN_FILES, value)
+        }
+
+    val showHiddenFilesFlow = ::showHiddenFiles.asFlowNonNull()
 }

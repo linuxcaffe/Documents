@@ -9,6 +9,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +28,7 @@ import org.fossify.documents.data.DocumentsRepository
 import org.fossify.documents.data.isAllowedExternalDocumentLink
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.models.DocumentKind
+import org.fossify.documents.ui.screens.DeleteDocumentsDialog
 import org.fossify.documents.ui.screens.StructuredDocumentScreen
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
 import org.fossify.documents.viewmodels.StructuredDocumentViewModel
@@ -67,6 +72,8 @@ class StructuredDocumentActivity : BaseComposeActivity() {
                 ) {
                     viewModel.load(uri, kind, force = true)
                 }
+                val canDelete by rememberCanDeleteDocument(uri)
+                var confirmDelete by remember { mutableStateOf(false) }
                 StructuredDocumentScreen(
                     uiState = uiState,
                     onBack = ::finish,
@@ -82,7 +89,19 @@ class StructuredDocumentActivity : BaseComposeActivity() {
                     onOpenWith = { openWith(uri) },
                     onShare = { shareDocuments(listOf(uri)) },
                     onOpenLink = ::openLink,
+                    onDelete = if (canDelete) ({ confirmDelete = true }) else null,
                 )
+                if (confirmDelete) {
+                    DeleteDocumentsDialog(
+                        count = 1,
+                        name = uiState.title.ifBlank { null },
+                        onConfirm = {
+                            confirmDelete = false
+                            deleteViewedDocument(uri)
+                        },
+                        onDismiss = { confirmDelete = false },
+                    )
+                }
             }
         }
     }

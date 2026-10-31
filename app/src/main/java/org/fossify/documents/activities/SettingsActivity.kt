@@ -42,6 +42,14 @@ class SettingsActivity : BaseComposeActivity() {
                     .collectAsStateWithLifecycle(preferences.pdfPageIndicator)
                 val showFileLocations by preferences.showFileLocationsFlow
                     .collectAsStateWithLifecycle(preferences.showFileLocations)
+                val scrollEditorHeader by preferences.scrollEditorHeaderFlow
+                    .collectAsStateWithLifecycle(preferences.scrollEditorHeader)
+                val showFormattingToolbar by preferences.showFormattingToolbarFlow
+                    .collectAsStateWithLifecycle(preferences.showFormattingToolbar)
+                val createInCurrentFolder by preferences.createInCurrentFolderFlow
+                    .collectAsStateWithLifecycle(preferences.createInCurrentFolder)
+                val showHiddenFiles by preferences.showHiddenFilesFlow
+                    .collectAsStateWithLifecycle(preferences.showHiddenFiles)
                 val displayLanguage = remember { Locale.getDefault().displayLanguage }
                 val isUseEnglishEnabled by remember(wasUseEnglishToggledFlow) {
                     derivedStateOf {
@@ -58,6 +66,10 @@ class SettingsActivity : BaseComposeActivity() {
                     horizontalPdfPaging = horizontalPdfPaging,
                     showPdfPageIndicator = showPdfPageIndicator,
                     showFileLocations = showFileLocations,
+                    scrollEditorHeader = scrollEditorHeader,
+                    showFormattingToolbar = showFormattingToolbar,
+                    createInCurrentFolder = createInCurrentFolder,
+                    showHiddenFiles = showHiddenFiles,
                     onUseEnglishPress = { isChecked ->
                         preferences.useEnglish = isChecked
                         exitProcess(0)
@@ -74,6 +86,18 @@ class SettingsActivity : BaseComposeActivity() {
                     },
                     onShowFileLocationsChange = { checked ->
                         preferences.showFileLocations = checked
+                    },
+                    onScrollEditorHeaderChange = { checked ->
+                        preferences.scrollEditorHeader = checked
+                    },
+                    onShowFormattingToolbarChange = { checked ->
+                        preferences.showFormattingToolbar = checked
+                    },
+                    onCreateInCurrentFolderChange = { checked ->
+                        preferences.createInCurrentFolder = checked
+                    },
+                    onShowHiddenFilesChange = { checked ->
+                        preferences.showHiddenFiles = checked
                     },
                     customizeColors = ::startCustomizationActivity,
                     goBack = ::finish

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -89,6 +90,7 @@ internal fun StructuredDocumentScreen(
     onOpenWith: () -> Unit,
     onShare: () -> Unit,
     onOpenLink: (Uri) -> Unit,
+    onDelete: (() -> Unit)? = null,
 ) {
     var searchActive by rememberSaveable { mutableStateOf(false) }
     val search = rememberSaveable(saver = WebDocumentSearchState.saver) { WebDocumentSearchState() }
@@ -117,6 +119,7 @@ internal fun StructuredDocumentScreen(
                 },
                 onEdit = onEdit,
                 onOpenWith = onOpenWith,
+                onDelete = onDelete,
                 onShare = onShare,
                 scrolledColor = scrolledColor,
                 scrollBehavior = scrollBehavior,
@@ -160,6 +163,7 @@ private fun StructuredDocumentTopBar(
     onSearch: (() -> Unit)?,
     onEdit: (() -> Unit)?,
     onOpenWith: () -> Unit,
+    onDelete: (() -> Unit)?,
     onShare: () -> Unit,
     scrolledColor: Color,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -236,6 +240,15 @@ private fun StructuredDocumentTopBar(
                         contentDescription = stringResource(id = org.fossify.commons.R.string.open_with),
                         tint = scrolledColor,
                     )
+                }
+                if (onDelete != null) {
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(id = org.fossify.commons.R.string.delete),
+                            tint = scrolledColor,
+                        )
+                    }
                 }
             }
         },

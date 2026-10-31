@@ -65,6 +65,7 @@ internal fun PdfReadingMenu(
     showPrint: Boolean,
     onOpenWith: () -> Unit,
     isLoaded: Boolean,
+    onDelete: (() -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -107,6 +108,12 @@ internal fun PdfReadingMenu(
                 text = { Text(stringResource(org.fossify.commons.R.string.open_with)) },
                 onClick = { expanded = false; onOpenWith() },
             )
+            if (onDelete != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(org.fossify.commons.R.string.delete)) },
+                    onClick = { expanded = false; onDelete() },
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(org.fossify.commons.R.string.settings)) },
                 onClick = { expanded = false; onSettings() },

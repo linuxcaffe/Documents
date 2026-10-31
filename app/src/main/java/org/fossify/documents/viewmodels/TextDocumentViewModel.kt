@@ -73,7 +73,11 @@ class TextDocumentViewModel(
                     } ?: throw IOException()
                     document to repository.isDocumentWritable(uri)
                 }
-                showDocument(decoded, writable)
+                if (decoded.isBinary) {
+                    _uiState.update { it.copy(isLoading = false, error = app.getString(R.string.file_not_text)) }
+                } else {
+                    showDocument(decoded, writable)
+                }
             } catch (error: OutOfMemoryError) {
                 _uiState.update {
                     it.copy(

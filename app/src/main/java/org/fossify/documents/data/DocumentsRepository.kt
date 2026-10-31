@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.map
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFolder
+import org.fossify.documents.models.DocumentInfo
+import org.fossify.documents.models.MSyncStatus
 
 @Suppress("TooManyFunctions")
 class DocumentsRepository(
@@ -114,6 +116,51 @@ class DocumentsRepository(
         }
     }
 
+    /** Deletes the files themselves and drops them from the app's lists; returns the URIs deleted. */
+    fun deleteDocuments(uris: Collection<String>): List<String> {
+        val deleted = uris.distinct().filter { appContext.deleteDocumentFile(it.toUri()) }
+        removeDocuments(deleted)
+        return deleted
+    }
+
+    /** Renames the file (in [folderUri] when it's known) and the app's entries for it. */
+    internal fun renameDocument(uri: String, name: String, folderUri: String?): RenameOutcome {
+        val outcome = appContext.renameDocumentFile(uri.toUri(), name, folderUri?.toUri())
+        if (outcome is RenameOutcome.Renamed) {
+            val renamed = outcome.uri.toString()
+            store.updateDocuments { documents ->
+                documents.map { if (it.uri == uri) it.copy(uri = renamed, name = name) else it }
+            }
+        }
+        return outcome
+    }
+
+    /** Moves or copies files into a folder; moved files keep their place in the app's lists. */
+    internal fun transferDocuments(
+        documents: List<DocumentEntry>,
+        targetFolderUri: String,
+        mode: TransferMode,
+    ): TransferResult {
+        val result = appContext.transferDocuments(documents.map { it.uri to it.name }, targetFolderUri.toUri(), mode)
+        if (mode == TransferMode.MOVE && result.done.isNotEmpty()) {
+            store.updateDocuments { entries ->
+                entries.map { entry -> result.done[entry.uri]?.let { entry.copy(uri = it) } ?: entry }
+            }
+        }
+        return result
+    }
+
+    /** The folders inside a folder, for the folder chooser; empty when it can't be read. */
+    internal fun childFolders(folderUri: String): List<DocumentFolder> {
+        return runCatching { scanner.readFolderContent(folderUri.toUri(), null).childFolders }.getOrDefault(emptyList())
+    }
+
+    /** Info for one file or folder; the app's own entry adds when it was last opened and whether it's a favorite. */
+    internal fun documentInfo(uri: String, name: String): DocumentInfo {
+        val entry = store.getDocuments().firstOrNull { it.uri == uri }
+        return appContext.readDocumentInfo(uri.toUri(), name, entry)
+    }
+
     fun setFavorites(documents: Collection<DocumentEntry>, favorite: Boolean) {
         if (documents.isEmpty()) {
             return
@@ -173,12 +220,19 @@ class DocumentsRepository(
         emit(scanner.readFolderContent(uri.toUri(), previous))
     }.flowOn(Dispatchers.IO)
 
+    fun createDocumentInFolder(folderUri: String, displayName: String, mimeType: String): Uri? {
+        val uri = appContext.createDocumentInFolder(folderUri.toUri(), displayName, mimeType) ?: return null
+        rememberDocument(uri)
+        return uri
+    }
+
 }
 
 internal data class DocumentFolderContent(
     val folder: DocumentFolder,
     val childFolders: List<DocumentFolder>,
     val documents: List<DocumentEntry>,
+    val syncStatus: MSyncStatus? = null,
 )
 
 internal data class ClearRecentResult(

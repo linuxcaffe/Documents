@@ -26,16 +26,21 @@ import org.fossify.commons.helpers.LICENSE_PDF_VIEWER
 import org.fossify.commons.models.FAQItem
 import org.fossify.documents.BuildConfig
 import org.fossify.documents.R
+import org.fossify.documents.data.RenameOutcome
+import org.fossify.documents.data.TransferMode
 import org.fossify.documents.extensions.shareDocuments
 import org.fossify.documents.extensions.startAboutActivity
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentKind
+import org.fossify.documents.models.NewDocumentType
+import org.fossify.documents.ui.screens.NewDocumentDialog
 import org.fossify.documents.ui.screens.DocumentsMainActions
 import org.fossify.documents.ui.screens.MainScreen
 import org.fossify.documents.ui.theme.DocumentsAppThemeSurface
 import org.fossify.documents.viewmodels.DocumentsHomeSection
 import org.fossify.documents.viewmodels.DocumentsViewModel
 
+@Suppress("TooManyFunctions")
 class MainActivity : BaseComposeActivity() {
     private var hasResumed = false
 
@@ -74,6 +79,20 @@ class MainActivity : BaseComposeActivity() {
             viewModel.rememberFolder(uri, data.flags)
         }
 
+    private var pendingTransfer: TransferMode? = null
+
+    // Move to / Copy to, "Other folder…": the chosen folder is remembered too, so the chooser offers it next time
+    private val transferFolderLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val mode = pendingTransfer ?: return@registerForActivityResult
+            pendingTransfer = null
+            val uri = result.data?.data?.takeIf { result.resultCode == RESULT_OK } ?: return@registerForActivityResult
+            viewModel.rememberFolder(uri, result.data?.flags ?: 0)
+            viewModel.transferSelectedDocuments(uri.toString(), mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
+            }
+        }
+
     private val createTextDocumentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleCreatedDocument(result.resultCode, result.data, DocumentKind.TEXT)
@@ -92,10 +111,23 @@ class MainActivity : BaseComposeActivity() {
         setContent {
             DocumentsAppThemeSurface {
                 val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+                val pendingNewDocument = viewModel.pendingNewDocument.collectAsStateWithLifecycle().value
                 MainScreen(
                     uiState = uiState,
                     actions = documentsMainActions(),
                 )
+                if (pendingNewDocument != null) {
+                    NewDocumentDialog(
+                        type = pendingNewDocument,
+                        folderName = uiState.activeFolder?.name.orEmpty(),
+                        onCreate = ::createDocumentInActiveFolder,
+                        onChooseLocation = {
+                            viewModel.dismissNewDocument()
+                            pickNewDocumentLocation(pendingNewDocument)
+                        },
+                        onDismiss = viewModel::dismissNewDocument,
+                    )
+                }
             }
         }
     }
@@ -112,22 +144,8 @@ class MainActivity : BaseComposeActivity() {
     private fun documentsMainActions() = DocumentsMainActions(
         openDocument = { openDocumentLauncher.launch(DocumentsViewModel.openDocumentIntent) },
         openFolder = { openFolderLauncher.launch(DocumentsViewModel.openFolderIntent) },
-        newTextFile = {
-            createTextDocumentLauncher.launch(
-                DocumentsViewModel.createDocumentIntent(
-                    mimeType = "text/plain",
-                    title = getString(R.string.untitled_text_file),
-                )
-            )
-        },
-        newMarkdownFile = {
-            createMarkdownDocumentLauncher.launch(
-                DocumentsViewModel.createDocumentIntent(
-                    mimeType = "text/markdown",
-                    title = getString(R.string.untitled_markdown_file),
-                )
-            )
-        },
+        newTextFile = { newDocument(NewDocumentType.TEXT) },
+        newMarkdownFile = { newDocument(NewDocumentType.MARKDOWN) },
         openSettings = ::launchSettings,
         openAbout = ::launchAbout,
         clearRecentDocuments = viewModel::clearRecentDocuments,
@@ -159,8 +177,74 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        loadInfo = viewModel::documentInfo,
+        onCopyText = { text -> copyToClipboard(text) },
+        loadChildFolders = viewModel::childFolders,
+        onTransferSelection = { folderUri, mode ->
+            viewModel.transferSelectedDocuments(folderUri, mode) { transfer ->
+                transferReport(mode, transfer)?.let { report -> toast(report) }
+            }
+        },
+        onTransferToOtherFolder = { mode ->
+            pendingTransfer = mode
+            transferFolderLauncher.launch(DocumentsViewModel.openFolderIntent)
+        },
+        onNewFolder = { name ->
+            viewModel.createFolder(name) { created ->
+                if (!created) {
+                    toast(R.string.documents_new_folder_failed)
+                }
+            }
+        },
+        onRenameSelection = { name ->
+            viewModel.renameSelectedDocument(name) { outcome ->
+                when (outcome) {
+                    is RenameOutcome.Renamed -> Unit
+                    RenameOutcome.NameTaken -> toast(R.string.rename_name_taken)
+                    RenameOutcome.Failed -> toast(R.string.rename_failed)
+                }
+            }
+        },
+        onDeleteSelection = {
+            viewModel.deleteSelectedDocuments { deleted, failed ->
+                if (deleted > 0) {
+                    toast(resources.getQuantityString(R.plurals.delete_files_done, deleted, deleted))
+                }
+                if (failed > 0) {
+                    toast(resources.getQuantityString(R.plurals.delete_files_failed, failed, failed))
+                }
+            }
+        },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
+
+    private fun newDocument(type: NewDocumentType) {
+        if (viewModel.canCreateInActiveFolder()) {
+            viewModel.requestNewDocument(type)
+        } else {
+            pickNewDocumentLocation(type)
+        }
+    }
+
+    private fun pickNewDocumentLocation(type: NewDocumentType) {
+        val (launcher, title) = when (type) {
+            NewDocumentType.TEXT -> createTextDocumentLauncher to R.string.untitled_text_file
+            NewDocumentType.MARKDOWN -> createMarkdownDocumentLauncher to R.string.untitled_markdown_file
+        }
+        launcher.launch(
+            DocumentsViewModel.createDocumentIntent(mimeType = type.mimeType, title = getString(title))
+        )
+    }
+
+    private fun createDocumentInActiveFolder(name: String) {
+        viewModel.createDocumentInActiveFolder(name) { uri, type ->
+            if (uri != null) {
+                launchDocument(uri, type.kind)
+            } else {
+                toast(R.string.new_file_failed)
+            }
+        }
+    }
 
     private fun handleCreatedDocument(resultCode: Int, data: Intent?, kind: DocumentKind) {
         val uri = data?.data
@@ -183,27 +267,11 @@ class MainActivity : BaseComposeActivity() {
     private fun launchDocument(uri: Uri, kind: DocumentKind) {
         hideKeyboard()
         try {
-            when (kind) {
-                DocumentKind.PDF -> {
-                    startActivity(
-                        Intent(this, PDFViewerActivity::class.java).apply {
-                            data = uri
-                        }
-                    )
-                }
-
-                DocumentKind.TEXT,
-                DocumentKind.MARKDOWN -> {
-                    startActivity(TextDocumentActivity.newIntent(this, uri, kind))
-                }
-
-                DocumentKind.DOCX,
-                DocumentKind.CSV,
-                DocumentKind.HTML -> {
-                    startActivity(StructuredDocumentActivity.newIntent(this, uri, kind))
-                }
-
-                DocumentKind.OTHER -> toast(R.string.unsupported_document_type)
+            val intent = documentViewerIntent(uri, kind)
+            if (intent == null) {
+                toast(R.string.unsupported_document_type)
+            } else {
+                startActivity(intent)
             }
         } catch (_: SecurityException) {
             toast(R.string.document_no_longer_available)

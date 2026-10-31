@@ -3,6 +3,7 @@ package org.fossify.documents.ui.screens
 import android.content.ActivityNotFoundException
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
@@ -33,13 +34,18 @@ import org.commonmark.node.StrongEmphasis
 import org.fossify.commons.compose.theme.SimpleTheme
 import org.fossify.commons.extensions.toast
 import org.fossify.documents.data.isAllowedExternalDocumentLink
+import org.fossify.documents.data.isRelativeDocumentLink
 import org.commonmark.node.Text as MarkdownText
+
+/** Opens relative links such as `other.md`; when absent, those links render as plain text. */
+internal val LocalRelativeLinkHandler = staticCompositionLocalOf<((String) -> Unit)?> { null }
 
 @Composable
 internal fun Node.inlineContent(): AnnotatedString {
     val linkColor = SimpleTheme.colorScheme.primary
     val codeBackground = markdownNeutralSurfaceColor(alpha = 0.08f)
     val linkListener = rememberMarkdownLinkListener()
+    val relativeLinkHandler = LocalRelativeLinkHandler.current
 
     return buildAnnotatedString {
         fun appendNode(node: Node) {
@@ -64,7 +70,7 @@ internal fun Node.inlineContent(): AnnotatedString {
                     node.children().forEach(::appendNode)
                 }
 
-                is Link -> appendLink(node, linkColor, linkListener, ::appendNode)
+                is Link -> appendLink(node, linkColor, linkListener, relativeLinkHandler, ::appendNode)
 
                 is Image -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
                     node.children().forEach(::appendNode)
@@ -106,25 +112,38 @@ private fun AnnotatedString.Builder.appendLink(
     node: Link,
     linkColor: Color,
     linkListener: LinkInteractionListener,
+    relativeLinkHandler: ((String) -> Unit)?,
     appendNode: (Node) -> Unit,
 ) {
-    if (isAllowedExternalDocumentLink(node.destination)) {
-        withLink(
-            LinkAnnotation.Url(
-                url = node.destination,
-                styles = TextLinkStyles(
-                    style = SpanStyle(
-                        color = linkColor,
-                        textDecoration = TextDecoration.Underline,
-                    )
-                ),
-                linkInteractionListener = linkListener,
-            )
-        ) {
+    val destination = node.destination
+    val styles = TextLinkStyles(
+        style = SpanStyle(
+            color = linkColor,
+            textDecoration = TextDecoration.Underline,
+        )
+    )
+    val annotation = when {
+        isAllowedExternalDocumentLink(destination) -> LinkAnnotation.Url(
+            url = destination,
+            styles = styles,
+            linkInteractionListener = linkListener,
+        )
+
+        relativeLinkHandler != null && isRelativeDocumentLink(destination) -> LinkAnnotation.Clickable(
+            tag = destination,
+            styles = styles,
+            linkInteractionListener = { relativeLinkHandler(destination) },
+        )
+
+        else -> null
+    }
+
+    if (annotation == null) {
+        node.children().forEach(appendNode)
+    } else {
+        withLink(annotation) {
             node.children().forEach(appendNode)
         }
-    } else {
-        node.children().forEach(appendNode)
     }
 }
 

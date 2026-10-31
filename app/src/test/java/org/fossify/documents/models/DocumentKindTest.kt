@@ -40,4 +40,21 @@ class DocumentKindTest {
             DocumentKind.fromName("workbook.xls", "application/vnd.ms-excel"),
         )
     }
+
+    @Test
+    fun `offers untyped files as text`() {
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName("vitrc", "application/octet-stream"))
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName(".taskrc", "application/octet-stream"))
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName(".taskrc", ""))
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName("nginx.conf.local", "application/octet-stream"))
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName("2026.journal", ""))
+        assertEquals(DocumentKind.TEXT, DocumentKind.fromName("foo.rc", ""))
+    }
+
+    @Test
+    fun `keeps typed and known binary files out`() {
+        assertEquals(DocumentKind.OTHER, DocumentKind.fromName("photo.jpg", "image/jpeg"))
+        assertEquals(DocumentKind.OTHER, DocumentKind.fromName("photo.jpg", ""))
+        assertEquals(DocumentKind.OTHER, DocumentKind.fromName("notes.db", "application/octet-stream"))
+    }
 }

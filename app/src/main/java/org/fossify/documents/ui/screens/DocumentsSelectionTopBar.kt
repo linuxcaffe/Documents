@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import org.fossify.commons.compose.theme.SimpleTheme
 import org.fossify.documents.R
+import org.fossify.documents.data.TransferMode
 import org.fossify.documents.viewmodels.DocumentsHomeSection
 import org.fossify.documents.viewmodels.DocumentsUiState
 
@@ -113,11 +114,76 @@ private fun DocumentsSelectionOverflowMenu(
     val selectedDocument = uiState.selectedDocuments.singleOrNull()
         ?.takeIf { uiState.selectionCount == 1 }
     val canRemove = uiState.homeSection != DocumentsHomeSection.FOLDER
-    if (selectedDocument == null && !canRemove) {
+    // files only: a selected folder can be removed from the list, never deleted from here
+    val deletable = uiState.selectedDocuments.distinctBy { it.uri }
+        .takeIf { it.isNotEmpty() && uiState.selectedFolders.isEmpty() }
+    // Info: one file or one folder
+    val infoTarget = when {
+        uiState.selectionCount != 1 -> null
+        selectedDocument != null -> selectedDocument.uri to selectedDocument.name
+        else -> uiState.selectedFolders.singleOrNull()?.let { it.uri to it.name }
+    }
+    if (selectedDocument == null && !canRemove && deletable == null && infoTarget == null) {
         return
     }
 
     var expanded by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf(false) }
+    if (showInfo && infoTarget != null) {
+        val (uri, name) = infoTarget
+        DocumentInfoDialog(
+            name = name,
+            loadInfo = { actions.loadInfo(uri, name) },
+            onCopy = actions.onCopyText,
+            onDismiss = { showInfo = false },
+        )
+    }
+    // Move to / Copy to: files only, like Delete
+    val transferable = deletable != null
+    var transferMode by remember { mutableStateOf<TransferMode?>(null) }
+    transferMode?.let { mode ->
+        val move = mode == TransferMode.MOVE
+        FolderChooserDialog(
+            title = stringResource(if (move) R.string.transfer_move_to else R.string.transfer_copy_to),
+            confirmLabel = stringResource(if (move) R.string.transfer_move_here else R.string.transfer_copy_here),
+            roots = uiState.folders,
+            loadChildren = actions.loadChildFolders,
+            onChoose = { folder ->
+                transferMode = null
+                actions.onTransferSelection(folder.uri, mode)
+            },
+            onOtherFolder = {
+                transferMode = null
+                actions.onTransferToOtherFolder(mode)
+            },
+            onDismiss = { transferMode = null },
+        )
+    }
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete && deletable != null) {
+        DeleteDocumentsDialog(
+            count = deletable.size,
+            name = deletable.singleOrNull()?.name,
+            onConfirm = {
+                confirmDelete = false
+                actions.onDeleteSelection()
+            },
+            onDismiss = { confirmDelete = false },
+        )
+    }
+    var renaming by remember { mutableStateOf(false) }
+    val renamable = selectedDocument.takeIf { uiState.selectedFolders.isEmpty() }
+    if (renaming && renamable != null) {
+        RenameDocumentDialog(
+            name = renamable.name,
+            kind = renamable.kind,
+            onRename = { name ->
+                renaming = false
+                actions.onRenameSelection(name)
+            },
+            onDismiss = { renaming = false },
+        )
+    }
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(
@@ -132,6 +198,15 @@ private fun DocumentsSelectionOverflowMenu(
             modifier = Modifier.widthIn(min = DocumentsMenuMinWidth),
             offset = DocumentsEndMenuOffset,
         ) {
+            if (infoTarget != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.info_title)) },
+                    onClick = {
+                        expanded = false
+                        showInfo = true
+                    },
+                )
+            }
             if (selectedDocument != null) {
                 DropdownMenuItem(
                     text = {
@@ -143,12 +218,46 @@ private fun DocumentsSelectionOverflowMenu(
                     },
                 )
             }
+            if (renamable != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = org.fossify.commons.R.string.rename)) },
+                    onClick = {
+                        expanded = false
+                        renaming = true
+                    },
+                )
+            }
+            if (transferable) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.transfer_move_to)) },
+                    onClick = {
+                        expanded = false
+                        transferMode = TransferMode.MOVE
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.transfer_copy_to)) },
+                    onClick = {
+                        expanded = false
+                        transferMode = TransferMode.COPY
+                    },
+                )
+            }
             if (canRemove) {
                 DropdownMenuItem(
                     text = { Text(text = stringResource(id = R.string.remove_from_documents)) },
                     onClick = {
                         expanded = false
                         actions.onRemoveSelection()
+                    },
+                )
+            }
+            if (deletable != null) {
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = org.fossify.commons.R.string.delete)) },
+                    onClick = {
+                        expanded = false
+                        confirmDelete = true
                     },
                 )
             }
