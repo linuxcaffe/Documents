@@ -115,4 +115,5 @@
     <string name="rename_invalid_name">A name can\'t be empty or contain a slash.</string>
     <string name="rename_links_hint">Links to the old name in other notes will stop working.</string>
     <string name="rename_failed">Could not rename the file.</string>
+    <string name="rename_name_taken">A file with that name already exists here.</string>
 </resources>

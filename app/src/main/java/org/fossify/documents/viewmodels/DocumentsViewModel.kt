@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import org.fossify.documents.R
 import org.fossify.documents.data.DocumentFolderContent
 import org.fossify.documents.data.DocumentsRepository
+import org.fossify.documents.data.RenameOutcome
 import org.fossify.documents.helpers.Config
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
@@ -426,15 +427,16 @@ class DocumentsViewModel(
         }
     }
 
-    /** Renames the one selected file; onDone(false) when the provider refused. */
-    fun renameSelectedDocument(name: String, onDone: (Boolean) -> Unit) {
+    /** Renames the one selected file, inside the browsed folder when there is one. */
+    internal fun renameSelectedDocument(name: String, onDone: (RenameOutcome) -> Unit) {
         val document = selectedDocuments.value.values.map { it.document }.distinctBy { it.uri }.singleOrNull()
             ?: return
+        val folderUri = folderPath.value.lastOrNull()?.uri?.takeIf { homeSection.value == DocumentsHomeSection.FOLDER }
         clearSelection()
         viewModelScope.launch(Dispatchers.IO) {
-            val renamed = repository.renameDocument(document.uri, name) != null
+            val outcome = repository.renameDocument(document.uri, name, folderUri)
             folderRefresh.value += 1L
-            withContext(Dispatchers.Main) { onDone(renamed) }
+            withContext(Dispatchers.Main) { onDone(outcome) }
         }
     }
 
