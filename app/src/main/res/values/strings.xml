@@ -112,4 +112,23 @@
     <string name="pdf_search_failed">Could not complete the search.</string>
     <string name="pdf_reading">PDF reading</string>
     <string name="pdf_horizontal_paging">Scroll PDFs horizontally</string>
+    <string name="transfer_move_to">Move to…</string>
+    <string name="transfer_copy_to">Copy to…</string>
+    <string name="transfer_move_here">Move here</string>
+    <string name="transfer_copy_here">Copy here</string>
+    <string name="transfer_other_folder">Other folder…</string>
+    <string name="transfer_no_folders">No folders here</string>
+    <plurals name="transfer_moved">
+        <item quantity="one">Moved %1$d file</item>
+        <item quantity="other">Moved %1$d files</item>
+    </plurals>
+    <plurals name="transfer_copied">
+        <item quantity="one">Copied %1$d file</item>
+        <item quantity="other">Copied %1$d files</item>
+    </plurals>
+    <string name="transfer_skipped">Already there, skipped: %1$s</string>
+    <plurals name="transfer_failed">
+        <item quantity="one">%1$d file could not be moved or copied</item>
+        <item quantity="other">%1$d files could not be moved or copied</item>
+    </plurals>
 </resources>

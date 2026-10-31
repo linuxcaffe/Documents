@@ -1,5 +1,6 @@
 package org.fossify.documents.ui.screens
 
+import org.fossify.documents.data.TransferMode
 import org.fossify.documents.models.DocumentEntry
 import org.fossify.documents.models.DocumentFilter
 import org.fossify.documents.models.DocumentFolder
@@ -34,5 +35,8 @@ internal data class DocumentsMainActions(
     val onOpenWith: (DocumentEntry) -> Unit,
     val onShareDocuments: (List<DocumentEntry>) -> Unit,
     val onRemoveSelection: () -> Unit,
+    val loadChildFolders: suspend (DocumentFolder) -> List<DocumentFolder>,
+    val onTransferSelection: (folderUri: String, mode: TransferMode) -> Unit,
+    val onTransferToOtherFolder: (TransferMode) -> Unit,
     val onToggleSelectedFavorites: () -> Unit,
 )
