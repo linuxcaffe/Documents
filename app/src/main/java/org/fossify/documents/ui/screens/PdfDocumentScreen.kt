@@ -64,6 +64,7 @@ internal fun PdfDocumentScreen(
     horizontalPaging: Boolean,
     onNightModeChange: (Boolean) -> Unit,
     onSettings: () -> Unit,
+    onDelete: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -210,6 +211,7 @@ internal fun PdfDocumentScreen(
                             showPrint = bookmarks.isNotEmpty(),
                             onOpenWith = onOpenWith,
                             isLoaded = hasLoaded,
+                            onDelete = onDelete,
                         )
                     },
                     isLoaded = hasLoaded,

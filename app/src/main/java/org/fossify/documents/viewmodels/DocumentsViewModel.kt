@@ -465,6 +465,19 @@ class DocumentsViewModel(
         }
     }
 
+    /** Deletes the selected files (not folders); onDone gets how many were deleted and how many failed. */
+    fun deleteSelectedDocuments(onDone: (deleted: Int, failed: Int) -> Unit) {
+        val documentUris = selectedDocuments.value.values.map { it.document.uri }.distinct()
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val deleted = repository.deleteDocuments(documentUris)
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) {
+                onDone(deleted.size, documentUris.size - deleted.size)
+            }
+        }
+    }
+
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.clearRecentDocuments()

@@ -79,6 +79,7 @@ internal fun TextDocumentScreen(
     textZoom: Float,
     onTextZoomChange: (Float) -> Unit,
     onResetTextZoom: () -> Unit,
+    onDelete: (() -> Unit)? = null,
 ) {
     LaunchedEffect(editorState) {
         snapshotFlow { editorState.text.toString() }
@@ -162,6 +163,7 @@ internal fun TextDocumentScreen(
                 textZoom = textZoom,
                 onTextZoomChange = onTextZoomChange,
                 onResetTextZoom = onResetTextZoom,
+                onDelete = onDelete,
                 scrolledColor = scrolledColor,
                 scrollBehavior = scrollBehavior,
                 statusBarColor = statusBarColor,
@@ -202,6 +204,7 @@ private fun TextDocumentTopBar(
     textZoom: Float,
     onTextZoomChange: (Float) -> Unit,
     onResetTextZoom: () -> Unit,
+    onDelete: (() -> Unit)?,
     scrolledColor: Color,
     scrollBehavior: TopAppBarScrollBehavior,
     statusBarColor: Int,
@@ -288,6 +291,7 @@ private fun TextDocumentTopBar(
                     canSaveCopy = uiState.canSaveCopy && !uiState.isSaving,
                     isReadOnly = uiState.isReadOnly,
                     onOpenForEditing = onOpenForEditing,
+                    onDelete = onDelete,
                 )
             }
         },

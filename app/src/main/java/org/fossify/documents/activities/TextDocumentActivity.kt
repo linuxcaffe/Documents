@@ -39,6 +39,7 @@ import org.fossify.documents.data.resolveRelativeDocumentLink
 import org.fossify.documents.extensions.config
 import org.fossify.documents.models.DocumentKind
 import org.fossify.documents.ui.screens.DEFAULT_DOCUMENT_TEXT_ZOOM
+import org.fossify.documents.ui.screens.DeleteDocumentsDialog
 import org.fossify.documents.ui.screens.LocalRelativeLinkHandler
 import org.fossify.documents.ui.screens.TextDocumentScreen
 import org.fossify.documents.ui.screens.coerceDocumentTextZoom
@@ -103,6 +104,8 @@ class TextDocumentActivity : BaseComposeActivity() {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 var showDiscardDialog by remember { mutableStateOf(false) }
                 var showReopenDialog by rememberSaveable { mutableStateOf(false) }
+                var confirmDelete by remember { mutableStateOf(false) }
+                val canDelete by rememberCanDeleteDocument(viewModel.documentUri)
                 var textZoom by remember {
                     mutableFloatStateOf(config.editorTextZoom.coerceDocumentTextZoom())
                 }
@@ -138,6 +141,20 @@ class TextDocumentActivity : BaseComposeActivity() {
                             textZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
                             config.editorTextZoom = DEFAULT_DOCUMENT_TEXT_ZOOM
                         },
+                        onDelete = if (canDelete) ({ confirmDelete = true }) else null,
+                    )
+                }
+
+                val deleteUri = viewModel.documentUri
+                if (confirmDelete && deleteUri != null) {
+                    DeleteDocumentsDialog(
+                        count = 1,
+                        name = uiState.title.ifBlank { null },
+                        onConfirm = {
+                            confirmDelete = false
+                            deleteViewedDocument(deleteUri)
+                        },
+                        onDismiss = { confirmDelete = false },
                     )
                 }
 

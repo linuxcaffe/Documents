@@ -136,4 +136,18 @@
     </plurals>
     <string name="m_sync_problem">Sync problem: %1$s</string>
     <string name="m_sync_conflict_copy_meta">Conflict copy · %1$s</string>
+    <string name="delete_file_title">Delete %1$s?</string>
+    <plurals name="delete_files_title">
+        <item quantity="one">Delete %1$d file?</item>
+        <item quantity="other">Delete %1$d files?</item>
+    </plurals>
+    <string name="delete_files_hint">The file is deleted from its folder, not just removed from Documents. This can\'t be undone.</string>
+    <plurals name="delete_files_done">
+        <item quantity="one">Deleted %1$d file</item>
+        <item quantity="other">Deleted %1$d files</item>
+    </plurals>
+    <plurals name="delete_files_failed">
+        <item quantity="one">%1$d file could not be deleted</item>
+        <item quantity="other">%1$d files could not be deleted</item>
+    </plurals>
 </resources>

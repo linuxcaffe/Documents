@@ -115,6 +115,13 @@ class DocumentsRepository(
         }
     }
 
+    /** Deletes the files themselves and drops them from the app's lists; returns the URIs deleted. */
+    fun deleteDocuments(uris: Collection<String>): List<String> {
+        val deleted = uris.distinct().filter { appContext.deleteDocumentFile(it.toUri()) }
+        removeDocuments(deleted)
+        return deleted
+    }
+
     fun setFavorites(documents: Collection<DocumentEntry>, favorite: Boolean) {
         if (documents.isEmpty()) {
             return
