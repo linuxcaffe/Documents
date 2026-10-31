@@ -188,7 +188,11 @@ internal fun TextDocumentScreen(
         TextDocumentContent(
             uiState = uiState,
             editorState = editorState,
-            modifier = if (chrome.scrollHeader) Modifier.nestedScroll(leavingHeader.nestedScrollConnection) else Modifier,
+            modifier = if (chrome.scrollHeader) {
+                Modifier.nestedScroll(leavingHeader.nestedScrollConnection)
+            } else {
+                Modifier
+            },
             showModeRow = !modeInTopBar,
             showFormattingToolbar = chrome.showFormattingToolbar,
             onOpenForEditing = onOpenForEditing,
@@ -282,9 +286,11 @@ private fun TextDocumentTopBar(
                     IconButton(onClick = { onPreviewChange(!uiState.previewEnabled) }) {
                         Icon(
                             imageVector = if (uiState.previewEnabled) Icons.Filled.Edit else Icons.Outlined.Visibility,
-                            contentDescription = stringResource(
-                                id = if (uiState.previewEnabled) org.fossify.commons.R.string.edit else R.string.preview,
-                            ),
+                            contentDescription = if (uiState.previewEnabled) {
+                                stringResource(id = org.fossify.commons.R.string.edit)
+                            } else {
+                                stringResource(id = R.string.preview)
+                            },
                             tint = scrolledColor,
                         )
                     }
