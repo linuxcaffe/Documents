@@ -156,4 +156,5 @@
     <string name="documents_new_folder">New folder</string>
     <string name="documents_new_folder_invalid_name">A name can\'t be empty or contain a slash.</string>
     <string name="documents_new_folder_failed">Could not create the folder.</string>
+    <string name="rename_name_taken">A file with that name already exists here.</string>
 </resources>
