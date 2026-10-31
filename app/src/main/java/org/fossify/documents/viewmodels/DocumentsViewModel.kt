@@ -426,6 +426,18 @@ class DocumentsViewModel(
         }
     }
 
+    /** Renames the one selected file; onDone(false) when the provider refused. */
+    fun renameSelectedDocument(name: String, onDone: (Boolean) -> Unit) {
+        val document = selectedDocuments.value.values.map { it.document }.distinctBy { it.uri }.singleOrNull()
+            ?: return
+        clearSelection()
+        viewModelScope.launch(Dispatchers.IO) {
+            val renamed = repository.renameDocument(document.uri, name) != null
+            folderRefresh.value += 1L
+            withContext(Dispatchers.Main) { onDone(renamed) }
+        }
+    }
+
     fun clearRecentDocuments() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.clearRecentDocuments()

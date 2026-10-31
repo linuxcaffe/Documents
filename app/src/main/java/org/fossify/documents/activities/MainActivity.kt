@@ -159,6 +159,13 @@ class MainActivity : BaseComposeActivity() {
         onOpenWith = ::openWith,
         onShareDocuments = ::shareDocuments,
         onRemoveSelection = viewModel::removeSelectedItems,
+        onRenameSelection = { name ->
+            viewModel.renameSelectedDocument(name) { renamed ->
+                if (!renamed) {
+                    toast(R.string.rename_failed)
+                }
+            }
+        },
         onToggleSelectedFavorites = viewModel::toggleSelectedFavorites,
     )
 
